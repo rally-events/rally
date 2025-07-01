@@ -1,0 +1,7 @@
+packages:
+  - "frontend"
+  - "backend"
+  - "packages/*"
+
+catalog:
+  "drizzle-orm": "^0.42.0"

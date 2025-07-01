@@ -1,0 +1,19 @@
+{
+  "name": "@rally/monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rally monorepo",
+  "scripts": {
+    "dev": "concurrently --names \"backend,frontend,db\" \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\" \"pnpm --filter @rally/db build --watch\"",
+    "build": "pnpm --filter @rally/db build && pnpm --filter backend build && pnpm --filter frontend build",
+    "type-check": "pnpm --recursive type-check"
+  },
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
