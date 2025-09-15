@@ -110,7 +110,12 @@ export default function SignupForm() {
             )}
           />
 
-          <Button type="submit" size="lg" className="w-full mt-2">
+          <Button
+            isLoading={form.formState.isSubmitting}
+            type="submit"
+            size="lg"
+            className="w-full mt-2"
+          >
             Get started
           </Button>
         </form>

@@ -112,6 +112,7 @@ export default function VerifyForm({ code }: { code?: string }) {
               <FormItem className="flex flex-col gap-2">
                 <FormControl>
                   <InputOTP
+                    disabled={form.formState.isSubmitting}
                     variant="gaps"
                     maxLength={6}
                     {...field}
@@ -129,6 +130,7 @@ export default function VerifyForm({ code }: { code?: string }) {
                 </FormControl>
                 <FormMessage />
                 <Button
+                  disabled={form.formState.isSubmitting}
                   type="button"
                   variant="outline"
                   size="lg"
@@ -142,6 +144,7 @@ export default function VerifyForm({ code }: { code?: string }) {
           />
           <div className="flex flex-col gap-2">
             <Button
+              disabled={form.formState.isSubmitting}
               type="button"
               variant="ghost"
               size="lg"

@@ -15,12 +15,7 @@ export default function page() {
     <div className="flex flex-col gap-4 p-12">
       <Button
         onClick={() => {
-          sendSignupEmail(
-            "dclerici77@gmail.com",
-            "Dominic",
-            "Clerici",
-            "123456"
-          )
+          sendSignupEmail("dclerici77@gmail.com")
         }}
       >
         Test confirmation email

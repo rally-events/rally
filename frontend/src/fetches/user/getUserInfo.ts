@@ -2,7 +2,14 @@ import { createClient } from "@/utils/supabase/server"
 import { db, eq, usersTable } from "@rally/db"
 
 export type SupabaseUserMetadata = {
-  // will figure this out
+  email: string
+  full_name: string
+  onboard_complete: boolean
+  pending_access: number
+  phone_verified: boolean
+  stripe_customer_id: string
+  sub: string
+  we_verified_email: boolean
 }
 
 export default async function getUserInfo(optionalProperties: {} = {}) {

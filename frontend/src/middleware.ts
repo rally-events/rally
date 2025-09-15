@@ -81,8 +81,6 @@ export async function middleware(request: NextRequest) {
   const isRouteLoggedOut = matchRoute(loggedOutRoutes, request.nextUrl.pathname)
   const isRouteLoggedIn = matchRoute(loggedInRoutes, request.nextUrl.pathname)
 
-  console.log(user?.user_metadata)
-
   if (isRoutePublic) {
     return supabaseResponse
   }
