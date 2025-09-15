@@ -4,8 +4,9 @@
   "private": true,
   "description": "Rally monorepo",
   "scripts": {
-    "dev": "concurrently --names \"backend,frontend,db\" \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\" \"pnpm --filter @rally/db build --watch\"",
+    "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter @rally/db dev\"",
     "build": "pnpm --filter @rally/db build && pnpm --filter backend build && pnpm --filter frontend build",
+    "lint": "pnpm --recursive lint",
     "type-check": "pnpm --recursive type-check"
   },
   "workspaces": [
