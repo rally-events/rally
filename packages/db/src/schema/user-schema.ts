@@ -1,22 +1,25 @@
 // this is temp, just for scaffolding
 
-import {
-  pgTable,
-  uuid,
-  varchar,
-  boolean,
-  jsonb,
-  text,
-} from "drizzle-orm/pg-core"
+import { pgTable, uuid, text, timestamp, pgSchema } from "drizzle-orm/pg-core"
+
+const authSchema = pgSchema("auth")
+export const users = authSchema.table("users", {
+  id: uuid("id").primaryKey(),
+})
 
 export const usersTable = pgTable("users", {
+  id: uuid("id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+})
+
+export const emailOTPTable = pgTable("email_otp", {
   id: uuid("id").primaryKey().defaultRandom(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  firstName: varchar("first_name", { length: 100 }),
-  lastName: varchar("last_name", { length: 100 }),
-  role: varchar("role", { length: 50 }).notNull().default("user"),
-  isActive: boolean("is_active").notNull().default(true),
-  profileData: jsonb("profile_data"),
-  newCol: text("new_col"),
-  newCol2: text("new_col2"),
+  userId: uuid("user_id").references(() => usersTable.id),
+  otp: text("otp").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 })

@@ -4,10 +4,13 @@
   "private": true,
   "description": "Rally monorepo",
   "scripts": {
-    "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter @rally/db dev\"",
+    "dev": "concurrently -n FE,DB,BE \"pnpm --filter frontend dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter backend dev\"",
     "build": "pnpm --filter @rally/db build && pnpm --filter backend build && pnpm --filter frontend build",
+    "db-update": "pnpm --filter @rally/db db:generate && supabase migration up",
     "lint": "pnpm --recursive lint",
-    "type-check": "pnpm --recursive type-check"
+    "type-check": "pnpm --recursive type-check",
+    "clean": "pnpm --recursive exec rm -rf node_modules dist .next tsconfig.tsbuildinfo && rm -rf node_modules",
+    "clean:install": "pnpm clean && pnpm install"
   },
   "workspaces": [
     "packages/*",
