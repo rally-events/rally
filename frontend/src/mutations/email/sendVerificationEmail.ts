@@ -19,8 +19,7 @@ const resend = new Resend(RESEND_API_KEY)
 export default async function sendVerificationEmail(email: string) {
   try {
     const headersList = await headers()
-    const APP_URL =
-      headersList.get("X-App-Url") || process.env.NEXT_PUBLIC_APP_URL!
+    const APP_URL = headersList.get("X-App-Url") || process.env.NEXT_PUBLIC_APP_URL!
 
     const user = await db.query.usersTable.findFirst({
       where: eq(usersTable.email, email),

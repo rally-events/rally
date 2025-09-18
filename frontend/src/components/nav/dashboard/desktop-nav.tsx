@@ -8,12 +8,12 @@ export default function DesktopNav() {
   return (
     <>
       <div className="w-72" />
-      <div className="w-72 border-r h-screen fixed left-0 top-0 p-2 flex flex-col">
+      <div className="fixed top-0 left-0 flex h-screen w-72 flex-col border-r p-2">
         <Link
           href="/dashboard/overview"
-          className="flex items-center gap-2 py-2 px-4 rounded-lg hover:bg-accent transition-colors duration-75"
+          className="hover:bg-accent flex items-center gap-2 rounded-lg px-4 py-2 transition-colors duration-75"
         >
-          <div className="size-10 rounded bg-primary" />
+          <div className="bg-primary size-10 rounded" />
           <h2 className="text-2xl font-semibold">Rally</h2>
         </Link>
         <Separator className="my-2" />

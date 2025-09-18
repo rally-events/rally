@@ -53,16 +53,12 @@ export default function VerifyEmailTemplate({
               Hello {firstName} {lastName},
             </Text>
             <Text style={paragraph}>
-              Thank you for signing up! Please use the verification code below
-              to complete your registration. This code will expire in 10
-              minutes.
+              Thank you for signing up! Please use the verification code below to complete your
+              registration. This code will expire in 10 minutes.
             </Text>
             {/* Copy Button */}
             <Section style={buttonContainer}>
-              <Button
-                style={copyButton}
-                href={`${baseUrl}/verify?code=${code}`}
-              >
+              <Button style={copyButton} href={`${baseUrl}/verify?code=${code}`}>
                 Verify Email
               </Button>
             </Section>
@@ -86,9 +82,7 @@ export default function VerifyEmailTemplate({
 
           {/* Footer */}
           <Section style={footer}>
-            <Text style={footerCopyright}>
-              © 2025 Your Company Name. All rights reserved.
-            </Text>
+            <Text style={footerCopyright}>© 2025 Your Company Name. All rights reserved.</Text>
             <Row>
               <Column align="center">
                 <Link href={`${baseUrl}/privacy`} style={footerLink}>

@@ -5,7 +5,7 @@ export default async function Home() {
   const { data: user, error } = await getUserInfo()
 
   return (
-    <div className="flex flex-col gap-8 justify-center items-center h-screen w-full">
+    <div className="flex h-screen w-full flex-col items-center justify-center gap-8">
       {user ? (
         <Link href="/dashboard/overview"> Go to Dashboard </Link>
       ) : (

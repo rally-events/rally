@@ -8,12 +8,9 @@ export default function ShowoffNav() {
 
   if (pathname.startsWith("/sign-in")) {
     return (
-      <span className="text-sm text-muted-foreground">
+      <span className="text-muted-foreground text-sm">
         Don't have an account?{" "}
-        <Link
-          href="/sign-up"
-          className="text-foreground underline hover:text-primary"
-        >
+        <Link href="/sign-up" className="text-foreground hover:text-primary underline">
           Sign up
         </Link>
       </span>
@@ -22,12 +19,9 @@ export default function ShowoffNav() {
 
   if (pathname.startsWith("/sign-up")) {
     return (
-      <span className="text-sm text-muted-foreground">
+      <span className="text-muted-foreground text-sm">
         Already have an account?{" "}
-        <Link
-          href="/sign-in"
-          className="text-foreground underline hover:text-primary"
-        >
+        <Link href="/sign-in" className="text-foreground hover:text-primary underline">
           Sign in
         </Link>
       </span>

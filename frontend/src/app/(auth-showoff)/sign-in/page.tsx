@@ -6,15 +6,13 @@ import React from "react"
 export default function page() {
   return (
     <div className="flex flex-col">
-      <h1 className="text-4xl font-medium leading-tight">
-        Welcome back to Rally!
-      </h1>
-      <p className="text-muted-foreground leading-tight mb-4">
+      <h1 className="text-4xl leading-tight font-medium">Welcome back to Rally!</h1>
+      <p className="text-muted-foreground mb-4 leading-tight">
         Sign in with your credentials below
       </p>
       <LoginForm />
       <Separator className="my-4" />
-      <Button variant="outline" size="lg" className="w-full mb-4">
+      <Button variant="outline" size="lg" className="mb-4 w-full">
         Sign in with Google
       </Button>
     </div>

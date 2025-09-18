@@ -83,15 +83,15 @@ export default function VerifyForm({ code }: { code?: string }) {
     }
   }
 
-  if (didVerify) {
+  if (!didVerify) {
     return (
       <div className="flex flex-col items-center">
-        <h1 className="text-4xl font-medium leading-tight">Email verified!</h1>
-        <p className="text-muted-foreground leading-tight mb-8 max-w-sm text-center">
+        <h1 className="text-4xl leading-tight font-medium">Email verified!</h1>
+        <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
           Your email has been verified and you can now continue to Rally
         </p>
         <Button onClick={() => router.push("/dashboard/overview")}>
-          Continue to Rally
+          Go to dashboard <ArrowRightIcon className="h-4 w-4" />
         </Button>
       </div>
     )
@@ -99,12 +99,13 @@ export default function VerifyForm({ code }: { code?: string }) {
 
   return (
     <>
+      <h1 className="text-4xl leading-tight font-medium">Welcome to Rally!</h1>
+      <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
+        Use the code sent to your email to verify your account and continue to Rally
+      </p>
       {error && <p className="text-red-500">{error}</p>}
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-2 w-fit"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-fit flex-col gap-2">
           <FormField
             control={form.control}
             name="code"
@@ -129,6 +130,7 @@ export default function VerifyForm({ code }: { code?: string }) {
                   </InputOTP>
                 </FormControl>
                 <FormMessage />
+                <Separator />
                 <Button
                   disabled={form.formState.isSubmitting}
                   type="button"
@@ -142,7 +144,8 @@ export default function VerifyForm({ code }: { code?: string }) {
               </FormItem>
             )}
           />
-          <div className="flex flex-col gap-2">
+
+          <div className="grid grid-cols-2 gap-2">
             <Button
               disabled={form.formState.isSubmitting}
               type="button"
@@ -153,13 +156,12 @@ export default function VerifyForm({ code }: { code?: string }) {
             >
               Resend code
             </Button>
-            <Separator />
             <Link
               className={buttonVariants({ variant: "ghost", size: "lg" })}
               href="/dashboard/overview"
             >
               Verify later
-              <ArrowRightIcon className="w-4 h-4" />
+              <ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>
         </form>

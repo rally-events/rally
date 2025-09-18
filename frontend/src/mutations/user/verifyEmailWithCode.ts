@@ -14,10 +14,7 @@ export default async function verifyEmailWithCode(code: string) {
     }
 
     const codeRow = await db.query.emailOTPTable.findFirst({
-      where: and(
-        eq(emailOTPTable.otp, code),
-        eq(emailOTPTable.userId, userData.id)
-      ),
+      where: and(eq(emailOTPTable.otp, code), eq(emailOTPTable.userId, userData.id)),
     })
     if (!codeRow) {
       console.error("[verifyEmailWithCode] codeRow not found")

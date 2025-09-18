@@ -4,9 +4,9 @@ import React from "react"
 
 export default function layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-stretch h-screen w-full">
-      <div className="flex flex-col flex-shrink-0 max-w-2xl justify-between py-12 px-20 mx-auto w-full">
-        <header className="flex justify-between items-center">
+    <div className="flex h-screen w-full items-stretch">
+      <div className="mx-auto flex w-full max-w-2xl flex-shrink-0 flex-col justify-between px-20 py-12">
+        <header className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-medium">
             Rally
           </Link>
@@ -18,7 +18,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
         </footer>
       </div>
       <div className="relative col-span-2 flex-grow">
-        <div className="absolute left-0 inset-8 rounded-2xl bg-purple-300" />
+        <div className="absolute inset-8 left-0 rounded-2xl bg-purple-300" />
       </div>
     </div>
   )

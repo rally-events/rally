@@ -32,18 +32,16 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           )
         },
       },
-    }
+    },
   )
 
   // IMPORTANT: DO NOT REMOVE auth.getUser()
@@ -69,6 +67,8 @@ export async function middleware(request: NextRequest) {
   // of sync and terminate the user's session prematurely!
 
   // if the user is logged in, they can't see /sign-up or /sign-in
+
+  return supabaseResponse
 
   const publicRoutes = ["/faq", "/", "/support/*"]
 

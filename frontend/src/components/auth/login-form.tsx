@@ -57,10 +57,7 @@ export default function LoginForm() {
       <Separator className="my-4" />
       {error && <p className="text-red-500">{error}</p>}
       <Form {...form}>
-        <form
-          className="flex flex-col gap-5"
-          onSubmit={form.handleSubmit(onSubmit)}
-        >
+        <form className="flex flex-col gap-5" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="email"
@@ -91,7 +88,7 @@ export default function LoginForm() {
             isLoading={form.formState.isSubmitting}
             type="submit"
             size="lg"
-            className="w-full mt-2"
+            className="mt-2 w-full"
           >
             Login
           </Button>

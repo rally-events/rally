@@ -1,8 +1,6 @@
 import { db, emailOTPTable, eq, InferSelectModel, usersTable } from "@rally/db"
 
-export default async function generateOTP(
-  user: InferSelectModel<typeof usersTable>
-) {
+export default async function generateOTP(user: InferSelectModel<typeof usersTable>) {
   try {
     // generate a random 6 digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString()

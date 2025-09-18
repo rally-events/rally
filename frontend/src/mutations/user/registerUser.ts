@@ -35,9 +35,7 @@ export default async function registerUser(formData: SignupForm) {
       return { error: userError.message }
     }
 
-    const { error: sendSignupEmailError } = await sendVerificationEmail(
-      data.email
-    )
+    const { error: sendSignupEmailError } = await sendVerificationEmail(data.email)
 
     if (sendSignupEmailError) {
       console.error("[registerUser] sendSignupEmailError", sendSignupEmailError)

@@ -13,8 +13,7 @@ const inputVariants = {
 
 type InputSize = keyof typeof inputVariants.size
 
-export interface InputProps
-  extends Omit<React.ComponentProps<"input">, "size"> {
+export interface InputProps extends Omit<React.ComponentProps<"input">, "size"> {
   size?: InputSize
 }
 
@@ -28,7 +27,7 @@ function Input({ className, type, size = "default", ...props }: InputProps) {
         inputVariants.size[size],
         "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-        className
+        className,
       )}
       {...props}
     />
