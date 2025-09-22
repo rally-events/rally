@@ -83,7 +83,7 @@ export default function VerifyForm({ code }: { code?: string }) {
     }
   }
 
-  if (!didVerify) {
+  if (didVerify) {
     return (
       <div className="flex flex-col items-center">
         <h1 className="text-4xl leading-tight font-medium">Email verified!</h1>

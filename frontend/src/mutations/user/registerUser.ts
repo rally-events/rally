@@ -26,6 +26,7 @@ export default async function registerUser(formData: SignupForm) {
           first_name: data.firstName,
           last_name: data.lastName,
           is_email_verified: false,
+          is_onboarded: false,
         },
       },
     })
@@ -35,12 +36,12 @@ export default async function registerUser(formData: SignupForm) {
       return { error: userError.message }
     }
 
-    const { error: sendSignupEmailError } = await sendVerificationEmail(data.email)
+    // const { error: sendSignupEmailError } = await sendVerificationEmail(data.email)
 
-    if (sendSignupEmailError) {
-      console.error("[registerUser] sendSignupEmailError", sendSignupEmailError)
-      return { error: sendSignupEmailError.toString() }
-    }
+    // if (sendSignupEmailError) {
+    //   console.error("[registerUser] sendSignupEmailError", sendSignupEmailError)
+    //   return { error: sendSignupEmailError.toString() }
+    // }
 
     return { error: null }
   } catch (error) {

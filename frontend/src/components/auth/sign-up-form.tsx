@@ -42,7 +42,7 @@ export default function SignupForm() {
     if (error) {
       setError(error)
     } else {
-      router.push("/verify")
+      router.push("/onboarding?step=1")
     }
   }
 

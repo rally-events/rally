@@ -5,6 +5,10 @@ CREATE TABLE "email_otp" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+-- CREATE TABLE "auth"."users" (
+-- 	"id" uuid PRIMARY KEY NOT NULL
+-- );
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
@@ -15,7 +19,6 @@ CREATE TABLE "users" (
 --> statement-breakpoint
 ALTER TABLE "email_otp" ADD CONSTRAINT "email_otp_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_id_users_id_fk" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE cascade ON UPDATE no action;
-
 
 create function public.handle_new_user()
 returns trigger

@@ -12,7 +12,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
           </Link>
           <ShowoffNav />
         </header>
-        <main className="-mt-12">{children}</main>
+        {children}
         <footer className="">
           <Link href="/">Support</Link>
         </footer>

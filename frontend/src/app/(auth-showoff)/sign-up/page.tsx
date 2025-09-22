@@ -5,7 +5,7 @@ import React from "react"
 
 export default function page() {
   return (
-    <div className="flex flex-col">
+    <main className="-mt-12 flex flex-col">
       <h1 className="text-4xl leading-tight font-medium">Welcome to Rally!</h1>
       <p className="text-muted-foreground mb-4 leading-tight">
         Sign up with your credentials below
@@ -15,6 +15,6 @@ export default function page() {
       <Button variant="outline" size="lg" className="mb-4 w-full">
         Sign up with Google
       </Button>
-    </div>
+    </main>
   )
 }
