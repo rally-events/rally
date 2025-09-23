@@ -1,7 +1,8 @@
 packages:
-  - "frontend"
-  - "backend"
-  - "packages/*"
+  - frontend
+  - packages/*
 
 catalog:
-  "drizzle-orm": "^0.42.0"
+  drizzle-orm: ^0.42.0
+
+nodeLinker: hoisted
