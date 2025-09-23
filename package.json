@@ -15,7 +15,7 @@
   },
   "workspaces": [
     "packages/*",
-    "backend",
+    "mobile",
     "frontend"
   ],
   "devDependencies": {
