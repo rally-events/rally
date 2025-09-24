@@ -12,7 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx"
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@types/node": "^20.19.2",
     "drizzle-kit": "^0.31.4",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   }
 }

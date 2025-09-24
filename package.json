@@ -4,19 +4,21 @@
   "private": true,
   "description": "Rally monorepo",
   "scripts": {
-    "dev": "concurrently -n FE,DB,BE \"pnpm --filter frontend dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter backend dev\"",
-    "build": "pnpm --filter @rally/db build && pnpm --filter backend build && pnpm --filter frontend build",
+    "dev": "concurrently -n FE,DB,MOBILE \"pnpm --filter next dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter mobile dev\"",
+    "dev:mobile": "concurrently -n FE,DB,MOBILE \"pnpm --filter next dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter mobile dev\"",
+    "build": "pnpm build:packages && pnpm --filter next build && pnpm --filter mobile build",
+    "build:packages": "pnpm --filter @rally/db build && pnpm --filter @rally/api build && pnpm --filter @rally/api-client build",
     "db-update": "pnpm --filter @rally/db db:generate && supabase migration up",
     "lint": "pnpm --recursive lint",
     "type-check": "pnpm --recursive type-check",
-    "clean": "pnpm --recursive exec rm -rf node_modules dist .next tsconfig.tsbuildinfo && rm -rf node_modules",
-    "clean:install": "pnpm clean && pnpm install",
+    "clean": "pnpm --recursive exec rm -rf node_modules dist .next .expo tsconfig.tsbuildinfo && rm -rf node_modules",
+    "clean:install": "pnpm clean && pnpm install && pnpm build:packages",
     "format": "pnpm --recursive format"
   },
   "workspaces": [
     "packages/*",
     "mobile",
-    "frontend"
+    "next"
   ],
   "devDependencies": {
     "concurrently": "^8.2.2"

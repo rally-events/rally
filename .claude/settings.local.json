@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm --filter @rally/api run --help)",
+      "Bash(pnpm --filter @rally/api-client run --help)",
+      "Bash(pnpm --filter @rally/db run --help)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
