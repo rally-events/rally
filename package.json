@@ -4,10 +4,10 @@
   "private": true,
   "description": "Rally monorepo",
   "scripts": {
-    "dev": "concurrently -n FE,DB,MOBILE \"pnpm --filter next dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter mobile dev\"",
+    "dev": "concurrently -n FE,SCHEMAS,DB,API,API-CLIENT \"pnpm --filter next dev\" \"pnpm --filter @rally/schemas dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter @rally/api dev\" \"pnpm --filter @rally/api-client dev\"",
     "dev:mobile": "concurrently -n FE,DB,MOBILE \"pnpm --filter next dev\" \"pnpm --filter @rally/db dev\" \"pnpm --filter mobile dev\"",
     "build": "pnpm build:packages && pnpm --filter next build && pnpm --filter mobile build",
-    "build:packages": "pnpm --filter @rally/db build && pnpm --filter @rally/api build && pnpm --filter @rally/api-client build",
+    "build:packages": "pnpm --filter @rally/schemas build && pnpm --filter @rally/db build && pnpm --filter @rally/api build && pnpm --filter @rally/api-client build",
     "db-update": "pnpm --filter @rally/db db:generate && supabase migration up",
     "lint": "pnpm --recursive lint",
     "type-check": "pnpm --recursive type-check",

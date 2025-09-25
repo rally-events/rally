@@ -38,3 +38,10 @@ export const signUpSchema = z.object({
 export const verifySchema = z.object({
   code: z.string().regex(/^\d{6}$/, "Code must be a 6 digit number"),
 })
+
+export const getUserInfoSchema = z.object({
+  withOrganization: z.boolean().optional(),
+  withTeam: z.boolean().optional(),
+  withSubscription: z.boolean().optional(),
+  withSettings: z.boolean().optional(),
+}).optional()

@@ -46,7 +46,7 @@ export default function ClientUserInfo() {
           <strong>User ID:</strong> {user.id}
         </p>
         <p>
-          <strong>Email Verified:</strong> {user.supabaseMetadata.we_verified_email ? "Yes" : "No"}
+          <strong>Email Verified:</strong> {user.supabaseMetadata.is_email_verified ? "Yes" : "No"}
         </p>
       </div>
     </div>

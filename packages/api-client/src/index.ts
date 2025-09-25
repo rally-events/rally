@@ -1,4 +1,4 @@
-import { createTRPCReact, createTRPCClient, httpBatchLink } from "@trpc/react-query"
+import { createTRPCReact, httpBatchLink } from "@trpc/react-query"
 import { createTRPCClient as createVanillaTRPCClient } from "@trpc/client"
 import type { AppRouter } from "@rally/api"
 

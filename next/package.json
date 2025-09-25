@@ -32,6 +32,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@rally/api": "workspace:*",
     "@rally/db": "workspace:*",
+    "@rally/schemas": "workspace:*",
     "@react-email/components": "0.5.3",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.4",

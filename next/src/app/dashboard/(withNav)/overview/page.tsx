@@ -1,6 +1,5 @@
 "use client"
 import { Button } from "@/components/ui/button"
-
 import sendSignupEmail from "@/mutations/email/sendVerificationEmail"
 import { createClient } from "@/utils/supabase/client"
 import React from "react"

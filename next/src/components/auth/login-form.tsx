@@ -1,6 +1,6 @@
 "use client"
 
-import { loginSchema } from "@/schemas/auth/login-schemas"
+import { loginSchema } from "@rally/schemas"
 import React, { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -40,11 +40,15 @@ export default function LoginForm() {
       email: data.email,
       password: data.password,
     })
-    if (error) {
-      setError(error.message)
+    if (error || !userData.user) {
+      setError(error?.message || "Could not log you in, please try again later.")
       return
     }
-    if (!userData.user?.user_metadata.is_email_verified) {
+    if (!userData.user.user_metadata.is_onboarded) {
+      router.push("/onboarding?step=1")
+      return
+    }
+    if (!userData.user.user_metadata.is_email_verified) {
       await sendVerificationEmail(data.email)
       router.push("/verify")
       return

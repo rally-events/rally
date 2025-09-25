@@ -1,7 +1,7 @@
 "use client"
 
-import { signUpSchema } from "@/schemas/auth/login-schemas"
-import React, { useState } from "react"
+import { signUpSchema } from "@rally/schemas"
+import React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import z from "zod"
@@ -16,15 +16,15 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { PasswordInput } from "@/components/ui/password-input"
-import registerUser from "@/mutations/user/registerUser"
-import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Separator } from "../ui/separator"
+import { trpc } from "@/lib/trpc/provider"
+import { Alert, AlertDescription } from "../ui/alert"
+import { AlertTriangleIcon } from "lucide-react"
 
 type SignupForm = z.infer<typeof signUpSchema>
 
 export default function SignupForm() {
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const form = useForm<SignupForm>({
     resolver: zodResolver(signUpSchema),
@@ -35,23 +35,30 @@ export default function SignupForm() {
       password: "",
     },
   })
-
-  const onSubmit = async (data: SignupForm) => {
-    setError(null)
-    const { error } = await registerUser(data)
-    if (error) {
-      setError(error)
-    } else {
+  const { error, mutate, isPending } = trpc.user.registerUser.useMutation({
+    onSuccess: () => {
       router.push("/onboarding?step=1")
-    }
-  }
+    },
+    onError: async (error) => {
+      console.error("error", error.message)
+    },
+  })
 
   return (
     <>
       <Separator className="my-4" />
-      {error && <p className="text-red-500">{error}</p>}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangleIcon className="size-4" />
+          <AlertDescription>
+            {error.message === "User already registered"
+              ? "That email already has a Rally account registered to it."
+              : "We couldn't sign you up, please try again later."}
+          </AlertDescription>
+        </Alert>
+      )}
       <Form {...form}>
-        <form className="flex flex-col gap-5" onSubmit={form.handleSubmit(onSubmit)}>
+        <form className="flex flex-col gap-5" onSubmit={form.handleSubmit((data) => mutate(data))}>
           <FormField
             control={form.control}
             name="email"
@@ -107,12 +114,7 @@ export default function SignupForm() {
             )}
           />
 
-          <Button
-            isLoading={form.formState.isSubmitting}
-            type="submit"
-            size="lg"
-            className="mt-2 w-full"
-          >
+          <Button isLoading={isPending} type="submit" size="lg" className="mt-2 w-full">
             Get started
           </Button>
         </form>

@@ -1,5 +1,5 @@
 "use client"
-import { verifySchema } from "@/schemas/auth/login-schemas"
+import { verifySchema } from "@rally/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import z from "zod"
 import React, { useState } from "react"
@@ -7,19 +7,35 @@ import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "../ui/input-otp"
 import { Button, buttonVariants } from "../ui/button"
-import { ArrowRightIcon, ClipboardIcon } from "lucide-react"
+import { AlertTriangleIcon, ArrowRightIcon, ClipboardIcon } from "lucide-react"
 import { Separator } from "../ui/separator"
-import verifyEmailWithCode from "@/mutations/user/verifyEmailWithCode"
 import { createClient } from "@/utils/supabase/client"
 import sendVerificationEmail from "@/mutations/email/sendVerificationEmail"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { trpc } from "@/lib/trpc/provider"
+import { Alert, AlertDescription } from "../ui/alert"
 
 type VerifyForm = z.infer<typeof verifySchema>
 
 export default function VerifyForm({ code }: { code?: string }) {
-  const [error, setError] = useState<string | null>(null)
   const [didVerify, setDidVerify] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { mutate, isPending } = trpc.user.verifyEmail.useMutation({
+    onMutate: () => {
+      setError(null)
+    },
+    onSuccess: () => {
+      setDidVerify(true)
+    },
+    onError: (error) => {
+      if (error.message === "Incorrect code") {
+        setError(error.message)
+      } else {
+        setError("Could not verify email")
+      }
+    },
+  })
   const router = useRouter()
   const form = useForm<VerifyForm>({
     resolver: zodResolver(verifySchema),
@@ -28,22 +44,13 @@ export default function VerifyForm({ code }: { code?: string }) {
     },
   })
 
-  const onSubmit = async (data: VerifyForm) => {
-    const { error } = await verifyEmailWithCode(data.code)
-    if (error) {
-      setError("Invalid code")
-    } else {
-      setDidVerify(true)
-    }
-  }
-
   const handleOTPChange = (value: string) => {
     form.setValue("code", value, { shouldValidate: true, shouldDirty: true })
 
     if (value.length === 6) {
       form.trigger("code").then((isValid) => {
         if (isValid) {
-          form.handleSubmit(onSubmit)()
+          form.handleSubmit((data) => mutate(data))()
         }
       })
     }
@@ -52,7 +59,7 @@ export default function VerifyForm({ code }: { code?: string }) {
   const handlePasteFromClipboard = async () => {
     try {
       if (!navigator.clipboard || !navigator.clipboard.readText) {
-        setError("Could not paste from clipboard")
+        error
       }
 
       const clipboardText = await navigator.clipboard.readText()
@@ -103,17 +110,26 @@ export default function VerifyForm({ code }: { code?: string }) {
       <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
         Use the code sent to your email to verify your account and continue to Rally
       </p>
-      {error && <p className="text-red-500">{error}</p>}
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-fit flex-col gap-2">
+        <form
+          onSubmit={form.handleSubmit((data) => mutate(data))}
+          className="flex w-fit flex-col gap-2"
+        >
           <FormField
             control={form.control}
             name="code"
             render={({ field }) => (
               <FormItem className="flex flex-col gap-2">
+                {error && (
+                  <Alert className="mb-4" variant="destructive">
+                    <AlertTriangleIcon className="size-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
                 <FormControl>
                   <InputOTP
-                    disabled={form.formState.isSubmitting}
+                    disabled={isPending}
                     variant="gaps"
                     maxLength={6}
                     {...field}
@@ -132,7 +148,7 @@ export default function VerifyForm({ code }: { code?: string }) {
                 <FormMessage />
                 <Separator />
                 <Button
-                  disabled={form.formState.isSubmitting}
+                  disabled={isPending}
                   type="button"
                   variant="outline"
                   size="lg"
@@ -147,7 +163,7 @@ export default function VerifyForm({ code }: { code?: string }) {
 
           <div className="grid grid-cols-2 gap-2">
             <Button
-              disabled={form.formState.isSubmitting}
+              disabled={isPending}
               type="button"
               variant="ghost"
               size="lg"

@@ -41,7 +41,7 @@ const isAdmin = middleware(async ({ ctx, next }) => {
   }
 
   // Check if user has admin role in metadata
-  const isAdminUser = ctx.user.user_metadata?.role === "admin"
+  const isAdminUser = ctx.user.user_metadata?.is_admin === true
   if (!isAdminUser) {
     throw new TRPCError({
       code: "FORBIDDEN",

@@ -3,6 +3,7 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client"
 import { appRouter, createContext } from "@rally/api"
 import type { AppRouter } from "@rally/api"
 import { cookies } from "next/headers"
+import "server-only"
 
 // Create a server-side tRPC caller for use in server components
 export const api = cache(async () => {

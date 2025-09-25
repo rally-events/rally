@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
 
   // if the user is logged in, they can't see /sign-up or /sign-in
 
-  // return supabaseResponse
+  return supabaseResponse
 
   const publicRoutes = ["/faq", "/", "/support/*"]
 
