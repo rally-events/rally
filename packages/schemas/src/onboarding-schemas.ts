@@ -63,15 +63,40 @@ export const onboardingStep2SponsorSchema = z.object({
   }),
 })
 
+export const onboardingStep3Schema = z.object({
+  address: z
+    .string()
+    .min(1, "Address is required")
+    .max(500, "Address must not exceed 500 characters"),
+  city: z
+    .string()
+    .min(1, "City is required")
+    .max(100, "City must not exceed 100 characters"),
+  state: z
+    .string()
+    .min(1, "State is required")
+    .max(100, "State must not exceed 100 characters"),
+  zipCode: z
+    .string()
+    .min(1, "Zip code is required")
+    .max(20, "Zip code must not exceed 20 characters"),
+  country: z
+    .string()
+    .min(1, "Country is required")
+    .max(100, "Country must not exceed 100 characters"),
+})
+
 export const onboardingFormSchema = z.discriminatedUnion("organizationType", [
   z.object({
     ...onboardingStep1Schema.shape,
     ...onboardingStep2HostSchema.shape,
+    ...onboardingStep3Schema.shape,
     organizationType: z.literal("host"),
   }),
   z.object({
     ...onboardingStep1Schema.shape,
     ...onboardingStep2SponsorSchema.shape,
+    ...onboardingStep3Schema.shape,
     organizationType: z.literal("sponsor"),
   }),
 ])
@@ -87,5 +112,25 @@ export const onboardingFormOptionalSchema = z
     eventsPerYear: z.coerce.number().max(100000).optional(),
     industry: z.enum([...sponsorIndustries.map((i) => i.id), ""]).optional(),
     employeeSize: z.enum([...employeeSizeRanges.map((s) => s.id), ""]).optional(),
+    address: z
+      .string()
+      .max(500, "Address must not exceed 500 characters")
+      .optional(),
+    city: z
+      .string()
+      .max(100, "City must not exceed 100 characters")
+      .optional(),
+    state: z
+      .string()
+      .max(100, "State must not exceed 100 characters")
+      .optional(),
+    zipCode: z
+      .string()
+      .max(20, "Zip code must not exceed 20 characters")
+      .optional(),
+    country: z
+      .string()
+      .max(100, "Country must not exceed 100 characters")
+      .optional(),
   })
   .optional()
