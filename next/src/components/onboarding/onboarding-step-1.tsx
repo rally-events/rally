@@ -21,8 +21,8 @@ import z from "zod"
 
 export type OnboardingStep1 = z.infer<typeof onboardingStep1Schema>
 
-export function Step1() {
-  const { formValues, updateValues } = useOnboardingForm()
+export default function OnboardingStep1() {
+  const { formValues, updateValues, goToNextStep } = useOnboardingForm()
 
   const form = useForm<OnboardingStep1>({
     resolver: zodResolver(onboardingStep1Schema),
@@ -34,6 +34,7 @@ export function Step1() {
 
   const onSubmit = (data: OnboardingStep1) => {
     updateValues(data, true)
+    goToNextStep()
   }
 
   return (
@@ -81,34 +82,30 @@ export function Step1() {
             )}
           />
 
-          {form.watch("organizationType") && (
-            <FormField
-              control={form.control}
-              name="organizationName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Organization Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter your organization name"
-                      {...field}
-                      onBlur={() => {
-                        field.onBlur()
-                        updateValues(form.getValues())
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="organizationName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Organization Name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your organization name"
+                    {...field}
+                    onBlur={() => {
+                      field.onBlur()
+                      updateValues(form.getValues())
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          {form.watch("organizationType") && form.watch("organizationName") && (
-            <Button type="submit" className="w-full">
-              Continue
-            </Button>
-          )}
+          <Button type="submit" className="w-full" disabled={!form.formState.isValid}>
+            Continue
+          </Button>
         </form>
       </Form>
     </div>

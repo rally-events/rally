@@ -4,6 +4,38 @@ export const organizationTypeSchema = z.enum(["host", "sponsor", ""]).refine((va
   message: "Organization type is required",
 })
 
+export const hostOrganizationTypes = [
+  { id: "fraternity", label: "Fraternity" },
+  { id: "sorority", label: "Sorority" },
+  { id: "club", label: "Club" },
+  { id: "society", label: "Society" },
+  { id: "student_org", label: "Student Organization" },
+  { id: "nonprofit", label: "Nonprofit" },
+  { id: "other", label: "Other" },
+] as const
+
+export const sponsorIndustries = [
+  { id: "technology", label: "Technology" },
+  { id: "finance", label: "Finance" },
+  { id: "healthcare", label: "Healthcare" },
+  { id: "education", label: "Education" },
+  { id: "retail", label: "Retail" },
+  { id: "manufacturing", label: "Manufacturing" },
+  { id: "consulting", label: "Consulting" },
+  { id: "media", label: "Media & Entertainment" },
+  { id: "food_beverage", label: "Food & Beverage" },
+  { id: "other", label: "Other" },
+] as const
+
+export const employeeSizeRanges = [
+  { id: "1-10", label: "1-10 employees" },
+  { id: "11-50", label: "11-50 employees" },
+  { id: "51-200", label: "51-200 employees" },
+  { id: "201-500", label: "201-500 employees" },
+  { id: "501-1000", label: "501-1000 employees" },
+  { id: "1000+", label: "1000+ employees" },
+] as const
+
 export const onboardingStep1Schema = z.object({
   organizationType: organizationTypeSchema,
   organizationName: z
@@ -12,9 +44,37 @@ export const onboardingStep1Schema = z.object({
     .max(255, "Organization name must not exceed 255 characters"),
 })
 
-export const onboardingFormSchema = z.object({
-  ...onboardingStep1Schema.shape,
+export const onboardingStep2HostSchema = z.object({
+  hostOrganizationType: z.enum([...hostOrganizationTypes.map((t) => t.id), ""], {
+    message: "Organization type is required",
+  }),
+  eventsPerYear: z.coerce
+    .number({ message: "Number of events is required" })
+    .min(1, "Number of events must be 1 or more")
+    .max(100000, "Number of events must be less than 100000") as z.ZodNumber,
 })
+
+export const onboardingStep2SponsorSchema = z.object({
+  industry: z.enum([...sponsorIndustries.map((i) => i.id), ""], {
+    message: "Industry is required",
+  }),
+  employeeSize: z.enum([...employeeSizeRanges.map((s) => s.id), ""], {
+    message: "Employee size is required",
+  }),
+})
+
+export const onboardingFormSchema = z.discriminatedUnion("organizationType", [
+  z.object({
+    ...onboardingStep1Schema.shape,
+    ...onboardingStep2HostSchema.shape,
+    organizationType: z.literal("host"),
+  }),
+  z.object({
+    ...onboardingStep1Schema.shape,
+    ...onboardingStep2SponsorSchema.shape,
+    organizationType: z.literal("sponsor"),
+  }),
+])
 
 export const onboardingFormOptionalSchema = z
   .object({
@@ -23,5 +83,9 @@ export const onboardingFormOptionalSchema = z
       .string()
       .max(255, "Organization name must not exceed 255 characters")
       .optional(),
+    hostOrganizationType: z.enum([...hostOrganizationTypes.map((t) => t.id), ""]).optional(),
+    eventsPerYear: z.coerce.number().max(100000).optional(),
+    industry: z.enum([...sponsorIndustries.map((i) => i.id), ""]).optional(),
+    employeeSize: z.enum([...employeeSizeRanges.map((s) => s.id), ""]).optional(),
   })
   .optional()

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { onboardingFormOptionalSchema, onboardingFormSchema } from "@rally/schemas"
 import z from "zod"
 
@@ -9,7 +10,11 @@ export type OnboardingForm = z.infer<typeof onboardingFormSchema>
 
 interface OnboardingContextType {
   formValues: OnboardingFormOptional
-  updateValues: (values: Partial<OnboardingForm>, isSubmit?: boolean) => void
+  updateValues: (values: Partial<OnboardingFormOptional>, isSubmit?: boolean) => void
+  currentStep: number
+  setCurrentStep: (step: number) => void
+  goToNextStep: () => void
+  goToPreviousStep: () => void
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined)
@@ -26,7 +31,22 @@ interface OnboardingProviderProps {
 }
 
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [formValues, setFormValues] = useState<OnboardingFormOptional>(undefined)
+  const [currentStep, setCurrentStepState] = useState<number>(1)
+
+  useEffect(() => {
+    const stepParam = searchParams.get("step")
+    const stepNumber = stepParam ? parseInt(stepParam, 10) : 1
+
+    if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 3) {
+      router.replace("/onboarding?step=1")
+      setCurrentStepState(1)
+    } else {
+      setCurrentStepState(stepNumber)
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     try {
@@ -40,6 +60,8 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           localStorage.removeItem(STORAGE_KEY)
           setFormValues(defaultValues)
         }
+      } else {
+        setFormValues(defaultValues)
       }
     } catch (error) {
       localStorage.removeItem(STORAGE_KEY)
@@ -47,13 +69,26 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     }
   }, [])
 
-  const updateValues = (values: Partial<OnboardingForm>, isSubmit = false) => {
-    const newValues = { ...formValues, ...values }
+  const updateValues = (values: Partial<OnboardingFormOptional>, isSubmit = false) => {
+    let newValues = { ...formValues, ...values }
+
+    // Clear conflicting fields when organization type changes
+    if (values?.organizationType && values.organizationType !== formValues?.organizationType) {
+      if (values.organizationType === "host") {
+        // Clear sponsor fields
+        delete newValues.industry
+        delete newValues.employeeSize
+      } else if (values.organizationType === "sponsor") {
+        // Clear host fields
+        delete newValues.hostOrganizationType
+        delete newValues.eventsPerYear
+      }
+    }
 
     if (!isSubmit) {
       const validationResult = onboardingFormOptionalSchema.safeParse(newValues)
       if (!validationResult.success) {
-        console.error("Invalid values:", validationResult.error)
+        console.log("inValid values:", validationResult.error)
         return
       }
     }
@@ -67,9 +102,35 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     }
   }
 
+  const setCurrentStep = (step: number) => {
+    if (step >= 1 && step <= 3) {
+      router.push(`/onboarding?step=${step}`)
+    }
+  }
+
+  const goToNextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const goToPreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
   return (
-    <OnboardingContext.Provider value={{ formValues, updateValues }}>
-      {/* // TODO: make this match the loading ui */}
+    <OnboardingContext.Provider
+      value={{
+        formValues,
+        updateValues,
+        currentStep,
+        setCurrentStep,
+        goToNextStep,
+        goToPreviousStep,
+      }}
+    >
       {formValues ? children : null}
     </OnboardingContext.Provider>
   )
