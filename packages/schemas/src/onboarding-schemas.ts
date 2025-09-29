@@ -86,17 +86,52 @@ export const onboardingStep3Schema = z.object({
     .max(100, "Country must not exceed 100 characters"),
 })
 
+export const onboardingStep4Schema = z.object({
+  instagram: z
+    .string()
+    .max(255, "Instagram handle must not exceed 255 characters")
+    .optional()
+    .or(z.literal("")),
+  tiktok: z
+    .string()
+    .max(255, "TikTok handle must not exceed 255 characters")
+    .optional()
+    .or(z.literal("")),
+  website: z
+    .string()
+    .url("Please enter a valid website URL")
+    .max(500, "Website URL must not exceed 500 characters")
+    .optional()
+    .or(z.literal("")),
+  contactEmail: z
+    .string()
+    .email("Please enter a valid email address")
+    .min(1, "Contact email is required"),
+  agreeToTerms: z
+    .boolean()
+    .refine((val) => val === true, {
+      message: "You must agree to the terms of service and privacy policy",
+    }),
+  isUsBasedOrganization: z
+    .boolean()
+    .refine((val) => val === true, {
+      message: "Your organization must be based in the United States",
+    }),
+})
+
 export const onboardingFormSchema = z.discriminatedUnion("organizationType", [
   z.object({
     ...onboardingStep1Schema.shape,
     ...onboardingStep2HostSchema.shape,
     ...onboardingStep3Schema.shape,
+    ...onboardingStep4Schema.shape,
     organizationType: z.literal("host"),
   }),
   z.object({
     ...onboardingStep1Schema.shape,
     ...onboardingStep2SponsorSchema.shape,
     ...onboardingStep3Schema.shape,
+    ...onboardingStep4Schema.shape,
     organizationType: z.literal("sponsor"),
   }),
 ])
@@ -132,5 +167,23 @@ export const onboardingFormOptionalSchema = z
       .string()
       .max(100, "Country must not exceed 100 characters")
       .optional(),
+    instagram: z
+      .string()
+      .max(255, "Instagram handle must not exceed 255 characters")
+      .optional(),
+    tiktok: z
+      .string()
+      .max(255, "TikTok handle must not exceed 255 characters")
+      .optional(),
+    website: z
+      .string()
+      .max(500, "Website URL must not exceed 500 characters")
+      .optional(),
+    contactEmail: z
+      .string()
+      .max(255, "Contact email must not exceed 255 characters")
+      .optional(),
+    agreeToTerms: z.boolean().optional(),
+    isUsBasedOrganization: z.boolean().optional(),
   })
   .optional()

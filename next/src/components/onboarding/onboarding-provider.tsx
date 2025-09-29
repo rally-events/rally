@@ -40,7 +40,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     const stepParam = searchParams.get("step")
     const stepNumber = stepParam ? parseInt(stepParam, 10) : 1
 
-    if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 3) {
+    if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 4) {
       router.replace("/onboarding?step=1")
       setCurrentStepState(1)
     } else {
@@ -103,13 +103,13 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   }
 
   const setCurrentStep = (step: number) => {
-    if (step >= 1 && step <= 3) {
+    if (step >= 1 && step <= 4) {
       router.push(`/onboarding?step=${step}`)
     }
   }
 
   const goToNextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     }
   }

@@ -3,6 +3,7 @@ import { useOnboardingForm } from "@/components/onboarding/onboarding-provider"
 import OnboardingStep1 from "./onboarding-step-1"
 import OnboardingStep2 from "./onboarding-step-2"
 import OnboardingStep3 from "./onboarding-step-3"
+import OnboardingStep4 from "./onboarding-step-4"
 
 export default function OnboardingStepRender() {
   const { currentStep } = useOnboardingForm()
@@ -15,6 +16,8 @@ export default function OnboardingStepRender() {
         return <OnboardingStep2 />
       case 3:
         return <OnboardingStep3 />
+      case 4:
+        return <OnboardingStep4 />
       default:
         return <OnboardingStep1 />
     }

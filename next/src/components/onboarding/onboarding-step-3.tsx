@@ -22,7 +22,7 @@ import { LoaderIcon } from "lucide-react"
 export type OnboardingStep3 = z.infer<typeof onboardingStep3Schema>
 
 export default function OnboardingStep3() {
-  const { formValues, updateValues, goToPreviousStep } = useOnboardingForm()
+  const { formValues, updateValues, goToPreviousStep, goToNextStep } = useOnboardingForm()
 
   const form = useForm<OnboardingStep3>({
     resolver: zodResolver(onboardingStep3Schema),
@@ -59,6 +59,7 @@ export default function OnboardingStep3() {
 
   const onSubmit = (data: OnboardingStep3) => {
     updateValues(data, true)
+    goToNextStep()
     // This could navigate to a completion page or submit the entire form
   }
 
@@ -66,9 +67,7 @@ export default function OnboardingStep3() {
     <div className="mx-auto max-w-md space-y-6">
       <div>
         <h2 className="text-2xl font-semibold">Organization Address</h2>
-        <p className="text-muted-foreground mt-2">
-          Please provide your organization's address.
-        </p>
+        <p className="text-muted-foreground mt-2">Please provide your organization's address.</p>
       </div>
 
       <Form {...form}>
@@ -98,13 +97,13 @@ export default function OnboardingStep3() {
                     />
 
                     {(isSearching || isLoadingDetails) && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <LoaderIcon className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                        <LoaderIcon className="text-muted-foreground h-4 w-4 animate-spin" />
                       </div>
                     )}
 
                     {showSuggestions && predictions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-md border bg-popover p-1 shadow-md">
+                      <div className="bg-popover absolute top-full right-0 left-0 z-50 mt-1 max-h-60 overflow-auto rounded-md border p-1 shadow-md">
                         {predictions.map((prediction) => {
                           const isSelected = selectedPredictionId === prediction.placeId
                           const isDisabled = isLoadingDetails && !isSelected
@@ -112,17 +111,15 @@ export default function OnboardingStep3() {
                           return (
                             <div
                               key={prediction.placeId}
-                              className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none ${
+                              className={`relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none ${
                                 isDisabled
-                                  ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                                  ? "text-muted-foreground cursor-not-allowed opacity-50"
                                   : "hover:bg-accent hover:text-accent-foreground"
                               }`}
                               onClick={() => !isDisabled && handlePredictionSelect(prediction)}
                             >
                               <span className="flex-1">{prediction.description}</span>
-                              {isSelected && (
-                                <LoaderIcon className="h-4 w-4 animate-spin ml-2" />
-                              )}
+                              {isSelected && <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />}
                             </div>
                           )
                         })}
@@ -228,10 +225,20 @@ export default function OnboardingStep3() {
           </div>
 
           <div className="flex space-x-4">
-            <Button type="button" variant="outline" onClick={goToPreviousStep} className="flex-1" disabled={isLoadingDetails}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={goToPreviousStep}
+              className="flex-1"
+              disabled={isLoadingDetails}
+            >
               Back
             </Button>
-            <Button type="submit" className="flex-1" disabled={!form.formState.isValid || isLoadingDetails}>
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={!form.formState.isValid || isLoadingDetails}
+            >
               Complete
             </Button>
           </div>
