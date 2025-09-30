@@ -22,7 +22,7 @@ export const eventTypeOptions = [
 
 const eventTypeEnum = z.enum(eventTypeOptions.map((option) => option.value))
 
-const formatEnum = z.enum(["in-person", "virtual", "hybrid"])
+const formatEnum = z.enum(["in-person", "virtual", "hybrid", ""])
 
 const audienceAgeEnum = z.enum(["under-18", "18-21", "22-30", "31-40", "41-50", "51-60", "over-60"])
 
@@ -40,18 +40,15 @@ export const eventEditSchema = z
   .object({
     id: z.string().min(1, "ID is required"),
     name: z.string().min(1, "Name is required").max(255, "Name must not exceed 255 characters"),
-    description: z
-      .string()
-      .min(1, "Description is required")
-      .max(3000, "Description must not exceed 3000 characters"),
+    description: z.string().max(3000, "Description must not exceed 3000 characters"),
     eventType: eventTypeEnum,
-    format: formatEnum,
+    format: formatEnum.refine((val) => val !== "", "Format is required"),
     usingOrganizationAddress: z.boolean().default(false),
-    streetAddress: z.string().min(1, "Street address is required"),
-    city: z.string().min(1, "City is required"),
-    state: z.string().min(1, "State is required"),
-    country: z.string().min(1, "Country is required"),
-    zipCode: z.string().min(1, "Zip code is required"),
+    streetAddress: z.string().max(500, "Street address must be 500 characters or less"),
+    city: z.string().max(255, "City must not exceed 255 characters"),
+    state: z.string().max(2, "State must be 2 characters"), // TODO: Make this a state code enum
+    country: z.string().max(255, "Country must be 255 characters or less"),
+    zipCode: z.string().max(20, "Zip code must be 20 characters or less"),
     startDatetime: z.date().min(sixHoursFromNow, "Start time must be at least 6 hours from now"),
     endDatetime: z.date(),
     expectedAttendees: z.object({
@@ -60,11 +57,18 @@ export const eventEditSchema = z
     }),
     themes: z.array(z.string()).min(1, "At least one theme/topic is required"),
     audienceAge: z.array(audienceAgeEnum).min(1, "At least one age group is required"),
-    communitySegments: z.array(z.string()).min(1, "At least one community segment is required"),
-    audienceInterests: z.array(z.string()).min(1, "At least one interest is required"),
-    hasFamousPeople: z.boolean(),
+    communitySegments: z.array(
+      z
+        .string()
+        .min(1, "Community segment is required")
+        .max(255, "Community segment must not exceed 255 characters"),
+    ),
+    audienceInterests: z.array(
+      z.string().min(1, "Interest is required").max(255, "Interest must not exceed 255 characters"),
+    ),
+    hasFamousPeople: z.boolean().default(false),
     famousPeople: z.array(famousPersonSchema),
-    isTicketed: z.boolean(),
+    isTicketed: z.boolean().default(false),
     ticketCost: z
       .union([z.number().positive("Ticket cost must be positive"), z.literal("other")])
       .optional(),
@@ -82,7 +86,7 @@ export const eventEditSchema = z
     const fifteenMinutesAfterStart = new Date(data.startDatetime.getTime() + 15 * 60 * 1000)
     if (data.endDatetime < fifteenMinutesAfterStart) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "End time must be at least 15 minutes after start time",
         path: ["endDatetime"],
       })
@@ -91,7 +95,7 @@ export const eventEditSchema = z
     // Validate expectedAttendees max >= min
     if (data.expectedAttendees.max < data.expectedAttendees.min) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Maximum attendees must be greater than or equal to minimum attendees",
         path: ["expectedAttendees", "max"],
       })
@@ -99,11 +103,17 @@ export const eventEditSchema = z
 
     // Address fields only required if NOT virtual
     if (data.format !== "virtual") {
-      if (!data.streetAddress) {
+      if (!data.streetAddress || !data.city || !data.state || !data.country || !data.zipCode) {
+        const path = []
+        if (!data.streetAddress) path.push("streetAddress")
+        if (!data.city) path.push("city")
+        if (!data.state) path.push("state")
+        if (!data.country) path.push("country")
+        if (!data.zipCode) path.push("zipCode")
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Street address is required for in-person and hybrid events",
-          path: ["streetAddress"],
+          code: "custom",
+          message: `Full address is required for ${data.format} events`,
+          path: path,
         })
       }
     }
@@ -111,7 +121,7 @@ export const eventEditSchema = z
     // If famous people are attending, must have at least one
     if (data.hasFamousPeople && data.famousPeople.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "At least one famous person must be listed if famous people are attending",
         path: ["famousPeople"],
       })
@@ -120,7 +130,7 @@ export const eventEditSchema = z
     // If ticketed, must have ticket cost
     if (data.isTicketed && !data.ticketCost) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Ticket cost is required for ticketed events",
         path: ["ticketCost"],
       })
@@ -175,7 +185,7 @@ export const eventEditOptionalSchema = z
       const fifteenMinutesAfterStart = new Date(data.startDatetime.getTime() + 15 * 60 * 1000)
       if (data.endDatetime < fifteenMinutesAfterStart) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "End time must be at least 15 minutes after start time",
           path: ["endDatetime"],
         })
@@ -185,7 +195,7 @@ export const eventEditOptionalSchema = z
     // Validate expectedAttendees if provided
     if (data.expectedAttendees && data.expectedAttendees.max < data.expectedAttendees.min) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Maximum attendees must be greater than or equal to minimum attendees",
         path: ["expectedAttendees", "max"],
       })
@@ -195,7 +205,7 @@ export const eventEditOptionalSchema = z
     if (data.format && data.format !== "virtual") {
       if (data.streetAddress !== undefined && !data.streetAddress) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Street address is required for in-person and hybrid events",
           path: ["streetAddress"],
         })
@@ -205,7 +215,7 @@ export const eventEditOptionalSchema = z
     // Famous people validation (only if hasFamousPeople is provided)
     if (data.hasFamousPeople && data.famousPeople && data.famousPeople.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "At least one famous person must be listed if famous people are attending",
         path: ["famousPeople"],
       })
@@ -214,7 +224,7 @@ export const eventEditOptionalSchema = z
     // Ticket cost validation (only if isTicketed is provided)
     if (data.isTicketed && data.ticketCost === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Ticket cost is required for ticketed events",
         path: ["ticketCost"],
       })

@@ -28,4 +28,8 @@ export const mediaRelations = relations(mediaTable, ({ one }) => ({
     fields: [mediaTable.organizationId],
     references: [organizationsTable.id],
   }),
+  user: one(usersTable, {
+    fields: [mediaTable.uploadedBy],
+    references: [usersTable.id],
+  }),
 }))
