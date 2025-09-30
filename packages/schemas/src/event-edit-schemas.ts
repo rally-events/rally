@@ -71,6 +71,8 @@ export const eventEditSchema = z
     mediaIds: z.object({
       images: z.array(z.string().uuid()).max(10, "Maximum 10 images allowed"),
       video: z.string().uuid().optional(),
+      poster: z.string().uuid().optional(),
+      pdfs: z.array(z.string().uuid()).max(5, "Maximum 5 PDFs allowed"),
     }).optional(),
   })
   .superRefine((data, ctx) => {
@@ -159,6 +161,8 @@ export const eventEditOptionalSchema = z
     mediaIds: z.object({
       images: z.array(z.string().uuid()).max(10, "Maximum 10 images allowed"),
       video: z.string().uuid().optional(),
+      poster: z.string().uuid().optional(),
+      pdfs: z.array(z.string().uuid()).max(5, "Maximum 5 PDFs allowed"),
     }).optional(),
   })
   .superRefine((data, ctx) => {

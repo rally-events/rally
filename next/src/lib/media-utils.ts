@@ -24,6 +24,21 @@ const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
 const MIN_VIDEO_DURATION = 2 // seconds
 const MAX_VIDEO_DURATION = 120 // seconds (2 minutes)
 
+// Poster/Flyer constants
+const MIN_POSTER_DIMENSION = 500
+const MAX_POSTER_DIMENSION = 12000
+const MAX_POSTER_SIZE = 20 * 1024 * 1024 // 20MB
+const POSTER_ASPECT_RATIOS = [
+  { ratio: 11 / 17, name: "11:17" },
+  { ratio: 4 / 5, name: "4:5" },
+  { ratio: 9 / 16, name: "9:16" },
+  { ratio: 8.5 / 11, name: "8.5:11" },
+]
+const ASPECT_RATIO_TOLERANCE = 0.02
+
+// PDF constants
+const MAX_PDF_SIZE = 10 * 1024 * 1024 // 10MB
+
 /**
  * Validate image file dimensions and size
  */
@@ -209,4 +224,108 @@ export function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${mins}:${secs.toString().padStart(2, "0")}`
+}
+
+/**
+ * Validate poster/flyer image dimensions and aspect ratio
+ */
+export async function validatePosterDimensions(file: File): Promise<ImageValidationResult> {
+  // Check file size first
+  if (file.size > MAX_POSTER_SIZE) {
+    return {
+      valid: false,
+      error: `Poster size exceeds maximum of 20MB (current: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+    }
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+
+      const { width, height } = img
+
+      // Check minimum dimensions
+      if (width < MIN_POSTER_DIMENSION || height < MIN_POSTER_DIMENSION) {
+        resolve({
+          valid: false,
+          width,
+          height,
+          error: `Poster dimensions too small. Both width and height must be at least ${MIN_POSTER_DIMENSION}px (current: ${width}x${height}px)`,
+        })
+        return
+      }
+
+      // Check maximum dimensions
+      if (width > MAX_POSTER_DIMENSION || height > MAX_POSTER_DIMENSION) {
+        resolve({
+          valid: false,
+          width,
+          height,
+          error: `Poster dimensions too large. Both width and height must be at most ${MAX_POSTER_DIMENSION}px (current: ${width}x${height}px)`,
+        })
+        return
+      }
+
+      // Check aspect ratio
+      const imageAspectRatio = width / height
+      const matchingRatio = POSTER_ASPECT_RATIOS.find(
+        ({ ratio }) => Math.abs(imageAspectRatio - ratio) <= ASPECT_RATIO_TOLERANCE,
+      )
+
+      if (!matchingRatio) {
+        const ratioNames = POSTER_ASPECT_RATIOS.map((r) => r.name).join(", ")
+        resolve({
+          valid: false,
+          width,
+          height,
+          error: `Poster must have one of these aspect ratios: ${ratioNames}. Current aspect ratio: ${(width / height).toFixed(3)}`,
+        })
+        return
+      }
+
+      resolve({
+        valid: true,
+        width,
+        height,
+      })
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      resolve({
+        valid: false,
+        error: "Failed to load poster image. The file may be corrupted or not a valid image format.",
+      })
+    }
+
+    img.src = url
+  })
+}
+
+/**
+ * Validate PDF file
+ */
+export async function validatePDF(file: File): Promise<{ valid: boolean; error?: string }> {
+  // Check file type
+  if (file.type !== "application/pdf") {
+    return {
+      valid: false,
+      error: "File must be a PDF document",
+    }
+  }
+
+  // Check file size
+  if (file.size > MAX_PDF_SIZE) {
+    return {
+      valid: false,
+      error: `PDF size exceeds maximum of 10MB (current: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+    }
+  }
+
+  return {
+    valid: true,
+  }
 }

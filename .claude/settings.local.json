@@ -12,7 +12,11 @@
       "Bash(cat:*)",
       "Bash(pnpm run:*)",
       "WebFetch(domain:developers.google.com)",
-      "Bash(pnpm build:packages:*)"
+      "Bash(pnpm build:packages:*)",
+      "Bash(pnpm --filter @rally/api type-check)",
+      "Bash(pnpm --filter @rally/schemas type-check)",
+      "Bash(pnpm --filter @rally/db type-check)",
+      "Bash(pnpm --filter @rally/next type-check)"
     ],
     "deny": [],
     "ask": []

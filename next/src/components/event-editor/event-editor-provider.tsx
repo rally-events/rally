@@ -13,7 +13,7 @@ export type EventEditorTabOptions = "basics" | "media" | "attendees" | "sponsors
 export interface UploadedMedia {
   id: string
   url: string
-  type: "image" | "video"
+  type: "image" | "video" | "poster" | "pdf"
   fileName: string
   fileSize: number
 }

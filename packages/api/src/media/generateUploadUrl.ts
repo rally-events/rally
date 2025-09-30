@@ -9,7 +9,7 @@ export default async function generateUploadUrl(
   ctx: Context,
   input: z.infer<typeof generateUploadUrlSchema>,
 ) {
-  const { eventId, mimeType, fileSize } = input
+  const { eventId, mimeType, fileSize, mediaType } = input
 
   if (!ctx.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" })
@@ -47,14 +47,25 @@ export default async function generateUploadUrl(
     })
   }
 
-  // Validate file size (10MB for images, 100MB for videos)
+  // Validate file size based on media type
   const isVideo = mimeType.startsWith("video/")
-  const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024
+  const isPDF = mimeType === "application/pdf"
+  const isPoster = mediaType === "poster"
+
+  let maxSize: number
+  if (isVideo) {
+    maxSize = 100 * 1024 * 1024 // 100MB for videos
+  } else if (isPDF) {
+    maxSize = 10 * 1024 * 1024 // 10MB for PDFs
+  } else {
+    maxSize = 20 * 1024 * 1024 // 20MB for images and posters
+  }
 
   if (fileSize > maxSize) {
+    const maxSizeMB = maxSize / (1024 * 1024)
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `File size exceeds maximum allowed size of ${isVideo ? "100MB" : "10MB"}`,
+      message: `File size exceeds maximum allowed size of ${maxSizeMB}MB`,
     })
   }
 
@@ -67,6 +78,7 @@ export default async function generateUploadUrl(
     "video/mp4",
     "video/quicktime",
     "video/webm",
+    "application/pdf",
   ]
 
   if (!allowedMimeTypes.includes(mimeType)) {
@@ -79,7 +91,11 @@ export default async function generateUploadUrl(
   // Generate unique file key
   const timestamp = Date.now()
   const randomString = Math.random().toString(36).substring(2, 15)
-  const fileExtension = mimeType.split("/")[1]
+  let fileExtension = mimeType.split("/")[1]
+
+  // Handle special cases
+  if (fileExtension === "quicktime") fileExtension = "mov"
+
   const fileKey = `events/${eventId}/${timestamp}-${randomString}.${fileExtension}`
 
   // Generate presigned URL (expires in 1 hour)
