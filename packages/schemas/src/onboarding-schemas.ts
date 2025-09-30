@@ -126,6 +126,7 @@ export const onboardingFormSchema = z.discriminatedUnion("organizationType", [
   }),
 ])
 
+// TODO: Make this a .partial() with zod
 export const onboardingFormOptionalSchema = z
   .object({
     organizationType: organizationTypeSchema.optional(),

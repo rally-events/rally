@@ -120,7 +120,7 @@ const ClientLink = ({ href, Icon, label, isActive }: ClientLinkProps) => {
   return (
     <Link
       href={href}
-      className={`${isActive ? "border-border bg-accent text-foreground font-medium tracking-[-0.0125em]" : "hover:bg-accent hover:text-foreground text-foreground/80 border-transparent"} flex items-center gap-2 rounded-lg border px-4 py-2 transition-all duration-75`}
+      className={`${isActive ? "border-border bg-accent text-foreground cursor-default font-medium tracking-[-0.0125em]" : "hover:bg-accent hover:text-foreground text-foreground/80 border-transparent"} flex items-center gap-2 rounded-lg border px-4 py-2 transition-all duration-75`}
     >
       <Icon className="size-4" />
       <h2 className="text-sm">{label}</h2>
