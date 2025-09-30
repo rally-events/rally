@@ -25,13 +25,15 @@ export const eventsTable = pgTable("events", {
   communitySegments: jsonb("community_segments").$type<string[]>(),
   audienceInterests: jsonb("audience_interests").$type<string[]>(),
   hasFamousPeople: boolean("has_famous_people").default(false),
-  famousPeople: jsonb("famous_people").$type<Array<{
-    name: string
-    title: string
-    profession: string
-    instagram?: string
-    website?: string
-  }>>(),
+  famousPeople: jsonb("famous_people").$type<
+    Array<{
+      name: string
+      title: string
+      profession: string
+      instagram?: string
+      website?: string
+    }>
+  >(),
   isTicketed: boolean("is_ticketed").default(false),
   ticketCost: text("ticket_cost"),
 
