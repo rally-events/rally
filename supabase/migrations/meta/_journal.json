@@ -15,6 +15,13 @@
       "when": 1758571384149,
       "tag": "0001_gray_agent_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759204233807,
+      "tag": "0002_brown_miracleman",
+      "breakpoints": true
     }
   ]
 }

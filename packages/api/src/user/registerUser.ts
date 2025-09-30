@@ -14,7 +14,7 @@ export default async function registerUser(ctx: Context, formData: z.infer<typeo
         last_name: formData.lastName,
         is_phone_verified: false,
         is_email_verified: false,
-        is_onboarded: false,
+        organization_type: undefined,
         is_admin: false,
       },
     },

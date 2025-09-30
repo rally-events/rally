@@ -1,6 +1,7 @@
 // this is temp, just for scaffolding
 
 import { pgTable, uuid, text, timestamp, pgSchema } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 
 const authSchema = pgSchema("auth")
 export const users = authSchema.table("users", {
@@ -15,6 +16,7 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
+  organizationId: uuid("organization_id"),
 })
 
 export const emailOTPTable = pgTable("email_otp", {
@@ -23,3 +25,11 @@ export const emailOTPTable = pgTable("email_otp", {
   otp: text("otp").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
+
+export const usersRelations = relations(usersTable, ({ many }) => ({
+  organizationMemberships: many(organizationMembersTable),
+}))
+
+// This import is placed here to avoid circular dependency issues
+// It will be resolved when the schema is loaded
+import { organizationMembersTable } from "./organization-schema"

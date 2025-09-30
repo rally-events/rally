@@ -16,12 +16,23 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useOnboardingForm } from "@/components/onboarding/onboarding-provider"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertTriangleIcon } from "lucide-react"
 import z from "zod"
 
 export type OnboardingStep4 = z.infer<typeof onboardingStep4Schema>
 
 export default function OnboardingStep4() {
-  const { formValues, updateValues, goToPreviousStep } = useOnboardingForm()
+  const {
+    formValues,
+    updateValues,
+    goToPreviousStep,
+    onSubmit,
+    isSubmitting,
+    formErrors,
+    submitError,
+    setCurrentStep,
+  } = useOnboardingForm()
 
   const form = useForm<OnboardingStep4>({
     resolver: zodResolver(onboardingStep4Schema),
@@ -35,9 +46,12 @@ export default function OnboardingStep4() {
     },
   })
 
-  const onSubmit = (data: OnboardingStep4) => {
+  const handleFormSubmit = (data: OnboardingStep4) => {
+    // Update values in context
     updateValues(data, true)
-    // This completes the onboarding flow
+
+    // Call the context's onSubmit which validates and submits
+    onSubmit()
   }
 
   return (
@@ -49,8 +63,42 @@ export default function OnboardingStep4() {
         </p>
       </div>
 
+      {formErrors.length > 0 && (
+        <div className="space-y-3">
+          {formErrors.map((formError, index) => (
+            <Alert key={index} variant="destructive">
+              <AlertTriangleIcon className="size-4" />
+              <AlertTitle>
+                {formError.stepName} (Step {formError.step})
+              </AlertTitle>
+              <AlertDescription>
+                <ul className="mt-2 list-inside list-disc space-y-1">
+                  {formError.errors.map((error, errorIndex) => (
+                    <li key={errorIndex}>{error}</li>
+                  ))}
+                </ul>
+                <Button
+                  variant="link"
+                  className="mt-2 h-auto p-0"
+                  onClick={() => setCurrentStep(formError.step)}
+                >
+                  Go to {formError.stepName}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
+
+      {submitError && (
+        <Alert variant="destructive">
+          <AlertTriangleIcon className="size-4" />
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      )}
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="instagram"
@@ -140,7 +188,7 @@ export default function OnboardingStep4() {
             control={form.control}
             name="agreeToTerms"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-start space-y-0 space-x-3">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -153,11 +201,21 @@ export default function OnboardingStep4() {
                 <div className="space-y-1 leading-none">
                   <FormLabel className="text-sm font-normal">
                     I agree to the{" "}
-                    <a href="/terms" className="underline hover:text-primary" target="_blank" rel="noopener noreferrer">
+                    <a
+                      href="/terms"
+                      className="hover:text-primary underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Terms of Service
                     </a>{" "}
                     and{" "}
-                    <a href="/privacy" className="underline hover:text-primary" target="_blank" rel="noopener noreferrer">
+                    <a
+                      href="/privacy"
+                      className="hover:text-primary underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Privacy Policy
                     </a>
                   </FormLabel>
@@ -171,7 +229,7 @@ export default function OnboardingStep4() {
             control={form.control}
             name="isUsBasedOrganization"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-start space-y-0 space-x-3">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -192,11 +250,21 @@ export default function OnboardingStep4() {
           />
 
           <div className="flex space-x-4">
-            <Button type="button" variant="outline" onClick={goToPreviousStep} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={goToPreviousStep}
+              className="flex-1"
+              disabled={isSubmitting}
+            >
               Back
             </Button>
-            <Button type="submit" className="flex-1" disabled={!form.formState.isValid}>
-              Complete Setup
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={!form.formState.isValid || isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Complete Setup"}
             </Button>
           </div>
         </form>

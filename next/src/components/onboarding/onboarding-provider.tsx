@@ -3,10 +3,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { onboardingFormOptionalSchema, onboardingFormSchema } from "@rally/schemas"
+import { trpc } from "@/lib/trpc/provider"
 import z from "zod"
 
 export type OnboardingFormOptional = z.infer<typeof onboardingFormOptionalSchema>
 export type OnboardingForm = z.infer<typeof onboardingFormSchema>
+
+interface FormError {
+  step: number
+  stepName: string
+  errors: string[]
+}
 
 interface OnboardingContextType {
   formValues: OnboardingFormOptional
@@ -15,6 +22,10 @@ interface OnboardingContextType {
   setCurrentStep: (step: number) => void
   goToNextStep: () => void
   goToPreviousStep: () => void
+  onSubmit: () => void
+  isSubmitting: boolean
+  formErrors: FormError[]
+  submitError: string | null
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined)
@@ -35,6 +46,29 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const searchParams = useSearchParams()
   const [formValues, setFormValues] = useState<OnboardingFormOptional>(undefined)
   const [currentStep, setCurrentStepState] = useState<number>(1)
+  const [formErrors, setFormErrors] = useState<FormError[]>([])
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const { mutate: createOrganization, isPending: isSubmitting } =
+    trpc.organization.createOrganization.useMutation({
+      onMutate: () => {
+        setSubmitError(null)
+        setFormErrors([])
+      },
+      onSuccess: () => {
+        // Clear localStorage onboarding data
+        try {
+          localStorage.removeItem(STORAGE_KEY)
+        } catch (error) {
+          console.error("Failed to clear localStorage:", error)
+        }
+        // Redirect to dashboard or organization page
+        router.push("/dashboard/overview")
+      },
+      onError: (error) => {
+        setSubmitError(error.message || "Failed to create organization. Please try again.")
+      },
+    })
 
   useEffect(() => {
     const stepParam = searchParams.get("step")
@@ -120,6 +154,91 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     }
   }
 
+  const getStepName = (step: number): string => {
+    switch (step) {
+      case 1:
+        return "Organization Information"
+      case 2:
+        return "Organization Details"
+      case 3:
+        return "Address Information"
+      case 4:
+        return "Contact & Terms"
+      default:
+        return `Step ${step}`
+    }
+  }
+
+  const validateFormData = (): { isValid: boolean; errors: FormError[] } => {
+    const errors: FormError[] = []
+
+    // Validate complete form
+    const validationResult = onboardingFormSchema.safeParse(formValues)
+
+    if (!validationResult.success) {
+      const zodErrors = validationResult.error.issues
+
+      // Group errors by which step they belong to
+      const step1Fields = ["organizationType", "organizationName"]
+      const step2HostFields = ["hostOrganizationType", "eventsPerYear"]
+      const step2SponsorFields = ["industry", "employeeSize"]
+      const step3Fields = ["address", "city", "state", "zipCode", "country"]
+      const step4Fields = ["instagram", "tiktok", "website", "contactEmail", "agreeToTerms", "isUsBasedOrganization"]
+
+      const step1Errors: string[] = []
+      const step2Errors: string[] = []
+      const step3Errors: string[] = []
+      const step4Errors: string[] = []
+
+      zodErrors.forEach((error: z.ZodIssue) => {
+        const fieldPath = error.path.join(".")
+
+        if (step1Fields.includes(fieldPath)) {
+          step1Errors.push(error.message)
+        } else if (step2HostFields.includes(fieldPath) || step2SponsorFields.includes(fieldPath)) {
+          step2Errors.push(error.message)
+        } else if (step3Fields.includes(fieldPath)) {
+          step3Errors.push(error.message)
+        } else if (step4Fields.includes(fieldPath)) {
+          step4Errors.push(error.message)
+        } else {
+          // Default to current step if we can't determine
+          step4Errors.push(error.message)
+        }
+      })
+
+      if (step1Errors.length > 0) {
+        errors.push({ step: 1, stepName: getStepName(1), errors: step1Errors })
+      }
+      if (step2Errors.length > 0) {
+        errors.push({ step: 2, stepName: getStepName(2), errors: step2Errors })
+      }
+      if (step3Errors.length > 0) {
+        errors.push({ step: 3, stepName: getStepName(3), errors: step3Errors })
+      }
+      if (step4Errors.length > 0) {
+        errors.push({ step: 4, stepName: getStepName(4), errors: step4Errors })
+      }
+    }
+
+    return { isValid: validationResult.success, errors }
+  }
+
+  const onSubmit = () => {
+    setSubmitError(null)
+    setFormErrors([])
+
+    const { isValid, errors } = validateFormData()
+
+    if (!isValid) {
+      setFormErrors(errors)
+      return
+    }
+
+    // Type assertion is safe here because we validated with onboardingFormSchema
+    createOrganization(formValues as OnboardingForm)
+  }
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -129,6 +248,10 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         setCurrentStep,
         goToNextStep,
         goToPreviousStep,
+        onSubmit,
+        isSubmitting,
+        formErrors,
+        submitError,
       }}
     >
       {formValues ? children : null}

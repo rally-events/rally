@@ -44,7 +44,7 @@ export default function LoginForm() {
       setError(error?.message || "Could not log you in, please try again later.")
       return
     }
-    if (!userData.user.user_metadata.is_onboarded) {
+    if (!userData.user.user_metadata.organization_type) {
       router.push("/onboarding?step=1")
       return
     }

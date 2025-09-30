@@ -10,7 +10,7 @@ export type SupabaseUserMetadata = {
   first_name: string
   last_name: string
   is_admin: boolean
-  is_onboarded: boolean
+  organization_type: "host" | "sponsor" | undefined
   is_phone_verified: boolean
   is_email_verified: boolean
 }
