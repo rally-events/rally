@@ -14,6 +14,7 @@ export type EventEditorContextType = {
   currentTab: EventEditorTabOptions
   setCurrentTab: (tab: EventEditorTabOptions) => void
   organization: NonNullable<UserInfo["organization"]>
+  handleUploadMedia: (media: any) => void
 }
 
 export type EventEditSchema = z.infer<typeof eventEditOptionalSchema>
@@ -33,17 +34,14 @@ export default function EventEditorProvider({
   })
   const [currentTab, setCurrentTab] = useState<EventEditorTabOptions>("basics")
 
-  // const updateValues = (values: Partial<EventEditSchema>) => {
-  //   const validationResult = eventEditOptionalSchema.safeParse(values)
-  //   if (!validationResult.success) {
-  //     console.log("inValid values:", validationResult.error)
-  //     return
-  //   }
-  //   form.setValue(validationResult.data)
-  // }
+  const handleUploadMedia = (media: any) => {
+    // TODO: Implement media upload
+  }
 
   return (
-    <EventEditorContext.Provider value={{ currentTab, setCurrentTab, organization }}>
+    <EventEditorContext.Provider
+      value={{ currentTab, setCurrentTab, organization, handleUploadMedia }}
+    >
       <FormProvider {...form}>{children}</FormProvider>
     </EventEditorContext.Provider>
   )
