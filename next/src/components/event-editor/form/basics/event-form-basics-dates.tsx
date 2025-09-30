@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { ChevronDownIcon } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
 
 export default function EventFormBasicsDates() {
   const {
@@ -57,52 +58,30 @@ export default function EventFormBasicsDates() {
   return (
     <Card>
       <CardContent>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex gap-2">
+        <div className="relative flex items-stretch gap-2">
+          <div className="flex flex-grow flex-col items-center gap-2">
             <div className="flex flex-1 flex-col gap-3">
-              <Label htmlFor="date-from" className="px-1">
-                Event starts at
-              </Label>
+              <Label htmlFor="date-from">Starts at...</Label>
               <Controller
                 name="startDatetime"
                 control={control}
                 render={({ field }) => (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        id="date-from"
-                        className="w-full justify-between font-normal"
-                      >
-                        {field.value
-                          ? field.value.toLocaleDateString("en-US", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "Pick a date"}
-                        <ChevronDownIcon />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          if (date) {
-                            const time = formatTime(field.value)
-                            const newDateTime = combineDateTime(date, time)
-                            field.onChange(newDateTime)
-                            // Clear end date if it becomes invalid
-                            if (!isEndDateValid(newDateTime)) {
-                              setValue("endDatetime", undefined)
-                            }
-                          }
-                        }}
-                        disabled={{ before: getMinStartDate() }}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={(date) => {
+                      if (date) {
+                        const time = formatTime(field.value)
+                        const newDateTime = combineDateTime(date, time)
+                        field.onChange(newDateTime)
+                        // Clear end date if it becomes invalid
+                        if (!isEndDateValid(newDateTime)) {
+                          setValue("endDatetime", undefined)
+                        }
+                      }
+                    }}
+                    disabled={{ before: getMinStartDate() }}
+                  />
                 )}
               />
               {errors.startDatetime && (
@@ -110,9 +89,6 @@ export default function EventFormBasicsDates() {
               )}
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="time-from" className="invisible px-1">
-                Starts at
-              </Label>
               <Controller
                 name="startDatetime"
                 control={control}
@@ -136,47 +112,26 @@ export default function EventFormBasicsDates() {
               />
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="bg-border w-px flex-shrink-0 self-stretch" />
+          <div className="flex flex-grow flex-col items-center gap-2">
             <div className="flex flex-1 flex-col gap-3">
-              <Label htmlFor="date-to" className="px-1">
-                Event ends at
-              </Label>
+              <Label htmlFor="date-to">Ends at...</Label>
               <Controller
                 name="endDatetime"
                 control={control}
                 render={({ field }) => (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        id="date-to"
-                        className="w-full justify-between font-normal"
-                      >
-                        {field.value
-                          ? field.value.toLocaleDateString("en-US", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "Pick a date"}
-                        <ChevronDownIcon />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        captionLayout="dropdown"
-                        onSelect={(date) => {
-                          if (date) {
-                            const time = formatTime(field.value)
-                            field.onChange(combineDateTime(date, time))
-                          }
-                        }}
-                        disabled={getMinEndDate() ? { before: getMinEndDate()! } : undefined}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    captionLayout="dropdown"
+                    onSelect={(date) => {
+                      if (date) {
+                        const time = formatTime(field.value)
+                        field.onChange(combineDateTime(date, time))
+                      }
+                    }}
+                    disabled={getMinEndDate() ? { before: getMinEndDate()! } : undefined}
+                  />
                 )}
               />
               {errors.endDatetime && (
@@ -184,9 +139,6 @@ export default function EventFormBasicsDates() {
               )}
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="time-to" className="invisible px-1">
-                Ends at
-              </Label>
               <Controller
                 name="endDatetime"
                 control={control}

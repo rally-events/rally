@@ -44,6 +44,7 @@ export async function generatePresignedUploadUrl(
     ContentType: contentType,
   })
 
+  // Use browser-compatible client for presigned URLs
   return await getSignedUrl(r2Client, command, { expiresIn })
 }
 

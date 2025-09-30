@@ -6,6 +6,7 @@ import EventEditorLeft from "./side-components/event-editor-left"
 import EventEditorTitle from "./form/event-editor-title"
 import EventFormBasics from "./form/basics/event-form-basics"
 import { useEventEditor } from "./event-editor-provider"
+import EventEditorMedia from "./form/media/event-editor-media"
 
 export default function EventEditorDisplay() {
   const { currentTab } = useEventEditor()
@@ -20,6 +21,7 @@ export default function EventEditorDisplay() {
         <section className="flex flex-grow flex-col gap-4 pb-16">
           <EventEditorTitle />
           {currentTab === "basics" && <EventFormBasics />}
+          {currentTab === "media" && <EventEditorMedia />}
         </section>
 
         <section className="sticky top-0 flex h-fit w-56 shrink-0 flex-col gap-2 pt-16">

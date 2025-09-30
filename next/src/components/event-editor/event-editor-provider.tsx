@@ -10,11 +10,21 @@ const EventEditorContext = createContext<EventEditorContextType | undefined>(und
 
 export type EventEditorTabOptions = "basics" | "media" | "attendees" | "sponsorship"
 
+export interface UploadedMedia {
+  id: string
+  url: string
+  type: "image" | "video"
+  fileName: string
+  fileSize: number
+}
+
 export type EventEditorContextType = {
   currentTab: EventEditorTabOptions
   setCurrentTab: (tab: EventEditorTabOptions) => void
   organization: NonNullable<UserInfo["organization"]>
-  handleUploadMedia: (media: any) => void
+  eventId: string
+  uploadedMedia: UploadedMedia[]
+  setUploadedMedia: React.Dispatch<React.SetStateAction<UploadedMedia[]>>
 }
 
 export type EventEditSchema = z.infer<typeof eventEditOptionalSchema>
@@ -33,14 +43,18 @@ export default function EventEditorProvider({
     resolver: zodResolver(eventEditOptionalSchema),
   })
   const [currentTab, setCurrentTab] = useState<EventEditorTabOptions>("basics")
-
-  const handleUploadMedia = (media: any) => {
-    // TODO: Implement media upload
-  }
+  const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([])
 
   return (
     <EventEditorContext.Provider
-      value={{ currentTab, setCurrentTab, organization, handleUploadMedia }}
+      value={{
+        currentTab,
+        setCurrentTab,
+        organization,
+        eventId: event.id,
+        uploadedMedia,
+        setUploadedMedia,
+      }}
     >
       <FormProvider {...form}>{children}</FormProvider>
     </EventEditorContext.Provider>

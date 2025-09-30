@@ -18,7 +18,7 @@ export default function EventFormBasics() {
   } = useFormContext<EventEditSchema>()
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       <Card>
         <CardContent className="grid grid-cols-2 gap-4">
           <div className="col-span-2 flex gap-4">

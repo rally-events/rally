@@ -3,9 +3,7 @@ import { generatePresignedUploadUrl } from "../utils/r2-client"
 import type { Context } from "../context"
 import type { z } from "zod"
 import type { generateUploadUrlSchema } from "@rally/schemas"
-import { db } from "@rally/db"
-import { eq } from "drizzle-orm"
-import { eventsTable } from "@rally/db/schema"
+import { db, eventsTable, usersTable, eq } from "@rally/db"
 
 export default async function generateUploadUrl(
   ctx: Context,
@@ -17,16 +15,21 @@ export default async function generateUploadUrl(
     throw new TRPCError({ code: "UNAUTHORIZED" })
   }
 
-  // Verify the event exists and user has access to it
+  // Get the user's organization
+  const user = await db.query.usersTable.findFirst({
+    where: eq(usersTable.id, ctx.user.id),
+  })
+
+  if (!user || !user.organizationId) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "User must be part of an organization",
+    })
+  }
+
+  // Verify the event exists and belongs to user's organization
   const event = await db.query.eventsTable.findFirst({
     where: eq(eventsTable.id, eventId),
-    with: {
-      organization: {
-        with: {
-          users: true,
-        },
-      },
-    },
   })
 
   if (!event) {
@@ -36,10 +39,8 @@ export default async function generateUploadUrl(
     })
   }
 
-  // Check if user is part of the organization
-  const userInOrg = event.organization.users.some((user) => user.userId === ctx.user?.id)
-
-  if (!userInOrg) {
+  // Check if event belongs to user's organization
+  if (event.organizationId !== user.organizationId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You do not have permission to upload media to this event",
