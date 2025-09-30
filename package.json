@@ -12,7 +12,7 @@
     "lint": "pnpm --recursive lint",
     "type-check": "pnpm --recursive type-check",
     "clean": "pnpm --recursive exec rm -rf node_modules dist .next .expo tsconfig.tsbuildinfo && rm -rf node_modules",
-    "clean:install": "pnpm clean && pnpm install && pnpm build:packages",
+    "clean:setup": "pnpm clean && pnpm install && pnpm build:packages",
     "format": "pnpm --recursive format"
   },
   "workspaces": [
