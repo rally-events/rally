@@ -4,17 +4,6 @@ import registerUser from "../user/registerUser"
 import getUserInfo from "../user/getUserInfo"
 import verifyEmailWithCode from "../user/verifyEmailWithCode"
 
-export type SupabaseUserMetadata = {
-  email: string
-  full_name: string
-  onboard_complete: boolean
-  pending_access: number
-  phone_verified: boolean
-  stripe_customer_id: string
-  sub: string
-  we_verified_email: boolean
-}
-
 export const userRouter = router({
   getUserInfo: publicProcedure
     .input(getUserInfoSchema)

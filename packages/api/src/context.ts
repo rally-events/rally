@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import type { User } from "@supabase/supabase-js"
+import { SupabaseUserMetadata } from "./user/getUserInfo"
 
 export interface CreateContextOptions {
   supabaseUrl: string
@@ -11,7 +12,7 @@ export interface CreateContextOptions {
 }
 
 export interface TRPCContext {
-  user: User | null
+  user: (User & { user_metadata: SupabaseUserMetadata }) | null
   supabase: ReturnType<typeof createServerClient>
 }
 
@@ -55,7 +56,7 @@ export async function createContext(opts: CreateContextOptions): Promise<TRPCCon
   } = await supabase.auth.getUser()
 
   return {
-    user,
+    user: user as (User & { user_metadata: SupabaseUserMetadata }) | null,
     supabase,
   }
 }

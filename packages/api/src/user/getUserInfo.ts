@@ -25,6 +25,10 @@ export default async function getUserInfo(
 
   const user = await db.query.usersTable.findFirst({
     where: eq(usersTable.id, ctx.user.id),
+    with: {
+      organization: input.withOrganization ? true : undefined,
+      organizationMembership: input.withOrganizationMembership ? true : undefined,
+    },
   })
 
   if (!user) {

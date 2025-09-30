@@ -1,2 +1,4 @@
 export * from "./auth-schemas"
 export * from "./onboarding-schemas"
+export * from "./trpc-schemas"
+export * from "./event-edit-schemas"

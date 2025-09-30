@@ -1,6 +1,7 @@
 import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 import { usersTable } from "./user-schema"
+import { eventsTable } from "./events-schema"
 
 // Enums
 export const organizationTypeEnum = pgEnum("organization_type", ["host", "sponsor"])
@@ -66,6 +67,7 @@ export const organizationMembersTable = pgTable("organization_members", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   role: memberRoleEnum("role").notNull().default("member"),
+  invitedBy: uuid("invited_by").references(() => usersTable.id, { onDelete: "cascade" }),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 })
 
@@ -79,7 +81,9 @@ export const organizationsRelations = relations(organizationsTable, ({ one, many
     fields: [organizationsTable.id],
     references: [sponsorOrganizationsTable.organizationId],
   }),
-  members: many(organizationMembersTable),
+  members: many(usersTable),
+  memberships: many(organizationMembersTable),
+  events: many(eventsTable),
 }))
 
 export const hostOrganizationsRelations = relations(hostOrganizationsTable, ({ one }) => ({
@@ -103,6 +107,10 @@ export const organizationMembersRelations = relations(organizationMembersTable, 
   }),
   user: one(usersTable, {
     fields: [organizationMembersTable.userId],
+    references: [usersTable.id],
+  }),
+  invitedBy: one(usersTable, {
+    fields: [organizationMembersTable.invitedBy],
     references: [usersTable.id],
   }),
 }))

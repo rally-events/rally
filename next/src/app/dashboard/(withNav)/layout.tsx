@@ -1,5 +1,5 @@
 import DesktopSideNav from "@/components/nav/dashboard/side-nav/desktop-side-nav"
-import DesktopTopHeader from "@/components/nav/dashboard/top-nav/desktop-top-header"
+import DesktopTopHeader from "@/components/nav/dashboard/top-nav/desktop-top-nav"
 import MobileNav from "@/components/nav/dashboard/mobile-nav"
 import React from "react"
 

@@ -1,10 +1,11 @@
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import DesktopNavClient from "./desktop-side-nav-client"
+import DesktopNavClient, { HostCreateEvent } from "./desktop-side-nav-client"
 import { Button } from "@/components/ui/button"
 import { HelpCircleIcon, PlusIcon } from "lucide-react"
 import { api } from "@/lib/trpc/server"
 import { Suspense } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function DesktopSideNav() {
   return (
@@ -24,11 +25,18 @@ export default function DesktopSideNav() {
         <Button variant="outline">
           Help & Support <HelpCircleIcon className="size-4" />
         </Button>
-        <Button variant="ghost">Terms of Service</Button>
       </div>
       <Separator className="my-2" />
-      <div className="flex items-center justify-center pt-1 pb-3">
+      <div className="flex flex-col items-center justify-center gap-1 pt-1 pb-3">
         <span className="text-muted-foreground text-xs">@ {new Date().getFullYear()} Rally</span>
+        <div className="flex gap-2">
+          <Link href="/" className="hover:text-primary text-muted-foreground text-xs underline">
+            Terms of Service
+          </Link>
+          <Link href="/" className="hover:text-primary text-muted-foreground text-xs underline">
+            Privacy Policy
+          </Link>
+        </div>
       </div>
     </div>
   )
@@ -46,16 +54,24 @@ const NavigationLinks = async () => {
 
   return (
     <div className="flex flex-col gap-2 px-2">
-      {user.supabaseMetadata.organization_type === "host" && (
-        <Button size="lg" className="w-full">
-          Create Event <PlusIcon className="size-4" />
-        </Button>
-      )}
+      {user.supabaseMetadata.organization_type === "host" && <HostCreateEvent />}
       <DesktopNavClient organizationType={user.supabaseMetadata.organization_type} />
     </div>
   )
 }
 
 const NaviationLinksSkeleton = () => {
-  return <>Loading Links...</>
+  return (
+    <div className="flex flex-col gap-2 px-2">
+      <Skeleton className="h-9.5 w-full" />
+      <Skeleton className="h-9.5 w-full" />
+      <Skeleton className="h-9.5 w-full" />
+      <Skeleton className="h-9.5 w-full" />
+      <Skeleton className="h-9.5 w-full" />
+      <Skeleton className="h-9.5 w-full" />
+      <Separator />
+      <Skeleton className="h-9.5 w-full" />
+      <Skeleton className="h-9.5 w-full" />
+    </div>
+  )
 }

@@ -22,6 +22,13 @@
       "when": 1759204233807,
       "tag": "0002_brown_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759220894634,
+      "tag": "0003_condemned_nextwave",
+      "breakpoints": true
     }
   ]
 }
