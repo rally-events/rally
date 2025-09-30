@@ -68,14 +68,8 @@ export const onboardingStep3Schema = z.object({
     .string()
     .min(1, "Address is required")
     .max(500, "Address must not exceed 500 characters"),
-  city: z
-    .string()
-    .min(1, "City is required")
-    .max(100, "City must not exceed 100 characters"),
-  state: z
-    .string()
-    .min(1, "State is required")
-    .max(100, "State must not exceed 100 characters"),
+  city: z.string().min(1, "City is required").max(100, "City must not exceed 100 characters"),
+  state: z.string().min(1, "State is required").max(100, "State must not exceed 100 characters"),
   zipCode: z
     .string()
     .min(1, "Zip code is required")
@@ -107,16 +101,12 @@ export const onboardingStep4Schema = z.object({
     .string()
     .email("Please enter a valid email address")
     .min(1, "Contact email is required"),
-  agreeToTerms: z
-    .boolean()
-    .refine((val) => val === true, {
-      message: "You must agree to the terms of service and privacy policy",
-    }),
-  isUsBasedOrganization: z
-    .boolean()
-    .refine((val) => val === true, {
-      message: "Your organization must be based in the United States",
-    }),
+  agreeToTerms: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the terms of service and privacy policy",
+  }),
+  isUsBasedOrganization: z.boolean().refine((val) => val === true, {
+    message: "Your organization must be based in the United States",
+  }),
 })
 
 export const onboardingFormSchema = z.discriminatedUnion("organizationType", [
@@ -147,42 +137,15 @@ export const onboardingFormOptionalSchema = z
     eventsPerYear: z.coerce.number().max(100000).optional(),
     industry: z.enum([...sponsorIndustries.map((i) => i.id), ""]).optional(),
     employeeSize: z.enum([...employeeSizeRanges.map((s) => s.id), ""]).optional(),
-    address: z
-      .string()
-      .max(500, "Address must not exceed 500 characters")
-      .optional(),
-    city: z
-      .string()
-      .max(100, "City must not exceed 100 characters")
-      .optional(),
-    state: z
-      .string()
-      .max(100, "State must not exceed 100 characters")
-      .optional(),
-    zipCode: z
-      .string()
-      .max(20, "Zip code must not exceed 20 characters")
-      .optional(),
-    country: z
-      .string()
-      .max(100, "Country must not exceed 100 characters")
-      .optional(),
-    instagram: z
-      .string()
-      .max(255, "Instagram handle must not exceed 255 characters")
-      .optional(),
-    tiktok: z
-      .string()
-      .max(255, "TikTok handle must not exceed 255 characters")
-      .optional(),
-    website: z
-      .string()
-      .max(500, "Website URL must not exceed 500 characters")
-      .optional(),
-    contactEmail: z
-      .string()
-      .max(255, "Contact email must not exceed 255 characters")
-      .optional(),
+    address: z.string().max(500, "Address must not exceed 500 characters").optional(),
+    city: z.string().max(100, "City must not exceed 100 characters").optional(),
+    state: z.string().max(100, "State must not exceed 100 characters").optional(),
+    zipCode: z.string().max(20, "Zip code must not exceed 20 characters").optional(),
+    country: z.string().max(100, "Country must not exceed 100 characters").optional(),
+    instagram: z.string().max(255, "Instagram handle must not exceed 255 characters").optional(),
+    tiktok: z.string().max(255, "TikTok handle must not exceed 255 characters").optional(),
+    website: z.string().max(500, "Website URL must not exceed 500 characters").optional(),
+    contactEmail: z.string().max(255, "Contact email must not exceed 255 characters").optional(),
     agreeToTerms: z.boolean().optional(),
     isUsBasedOrganization: z.boolean().optional(),
   })

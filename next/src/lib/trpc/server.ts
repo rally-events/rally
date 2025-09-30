@@ -17,6 +17,7 @@ export const api = cache(async () => {
     setCookie: (name: string, value: string, options?: any) => {
       // Server components can't set cookies, but this maintains compatibility
     },
+    getAllCookies: () => cookieStore.getAll(),
   })
 
   return appRouter.createCaller(ctx)

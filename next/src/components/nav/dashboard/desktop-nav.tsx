@@ -10,7 +10,7 @@ export default function DesktopNav() {
       <div className="w-72" />
       <div className="fixed top-0 left-0 flex h-screen w-72 flex-col border-r p-2">
         <Link
-          href="/dashboard/overview"
+          href="/"
           className="hover:bg-accent flex items-center gap-2 rounded-lg px-4 py-2 transition-colors duration-75"
         >
           <div className="bg-primary size-10 rounded" />

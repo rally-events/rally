@@ -16,7 +16,7 @@ export type SupabaseUserMetadata = {
 }
 
 export const userRouter = router({
-  getUserInfo: protectedProcedure
+  getUserInfo: publicProcedure
     .input(getUserInfoSchema)
     .query(async ({ ctx, input }) => await getUserInfo(ctx, input)),
   registerUser: publicProcedure

@@ -1,6 +1,5 @@
 import { db, eq, usersTable } from "@rally/db"
 import { TRPCContext } from "../context"
-import { TRPCError } from "@trpc/server"
 import { getUserInfoSchema } from "@rally/schemas"
 import { z } from "zod"
 
@@ -20,10 +19,8 @@ export default async function getUserInfo(
   input: z.infer<typeof getUserInfoSchema> = {},
 ) {
   if (!ctx.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be logged in to access this resource",
-    })
+    console.warn("[API/getUserInfo] Not signed in")
+    return null
   }
 
   const user = await db.query.usersTable.findFirst({
@@ -31,10 +28,8 @@ export default async function getUserInfo(
   })
 
   if (!user) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "User not found",
-    })
+    console.error("[API/getUserInfo] User not found")
+    return null
   }
 
   let returnedUser = {

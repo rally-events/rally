@@ -6,6 +6,7 @@ export interface CreateContextOptions {
   supabaseKey: string
   getCookie: (name: string) => string | undefined
   setCookie: (name: string, value: string, options?: any) => void
+  getAllCookies?: () => { name: string; value: string }[]
   request?: Request
 }
 
@@ -18,9 +19,14 @@ export async function createContext(opts: CreateContextOptions): Promise<TRPCCon
   const supabase = createServerClient(opts.supabaseUrl, opts.supabaseKey, {
     cookies: {
       getAll() {
+        // If getAllCookies is provided (Next.js server components), use it
+        if (opts.getAllCookies) {
+          return opts.getAllCookies()
+        }
+
         const cookies: { name: string; value: string }[] = []
 
-        // If we have a request (from React Native), extract cookies from the Cookie header
+        // If we have a request (from Next.js API routes or React Native), extract cookies from the Cookie header
         if (opts.request) {
           const cookieHeader = opts.request.headers.get("cookie")
           if (cookieHeader) {

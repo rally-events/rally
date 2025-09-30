@@ -183,7 +183,14 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       const step2HostFields = ["hostOrganizationType", "eventsPerYear"]
       const step2SponsorFields = ["industry", "employeeSize"]
       const step3Fields = ["address", "city", "state", "zipCode", "country"]
-      const step4Fields = ["instagram", "tiktok", "website", "contactEmail", "agreeToTerms", "isUsBasedOrganization"]
+      const step4Fields = [
+        "instagram",
+        "tiktok",
+        "website",
+        "contactEmail",
+        "agreeToTerms",
+        "isUsBasedOrganization",
+      ]
 
       const step1Errors: string[] = []
       const step2Errors: string[] = []

@@ -68,14 +68,14 @@ export async function middleware(request: NextRequest) {
 
   // if the user is logged in, they can't see /sign-up or /sign-in
 
-  return supabaseResponse
+  // return supabaseResponse
 
   const publicRoutes = ["/faq", "/", "/support/*"]
 
   // ONLY logged out users can see this
   const loggedOutRoutes = ["/sign-up", "/sign-in"]
 
-  const loggedInRoutes = ["/dashboard/*", "/verify"]
+  const loggedInRoutes = ["/dashboard/*", "/verify", "/onboarding"]
 
   const isRoutePublic = matchRoute(publicRoutes, request.nextUrl.pathname)
   const isRouteLoggedOut = matchRoute(loggedOutRoutes, request.nextUrl.pathname)
