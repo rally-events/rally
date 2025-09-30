@@ -11,7 +11,8 @@
       "WebSearch",
       "Bash(cat:*)",
       "Bash(pnpm run:*)",
-      "WebFetch(domain:developers.google.com)"
+      "WebFetch(domain:developers.google.com)",
+      "Bash(pnpm build:packages:*)"
     ],
     "deny": [],
     "ask": []

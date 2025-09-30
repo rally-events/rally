@@ -19,9 +19,19 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@rally/schemas": ["../packages/schemas/src"],
+      "@rally/db": ["../packages/db/src"],
+      "@rally/api": ["../packages/api/src"],
+      "@rally/api-client": ["../packages/api-client/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "../packages/schemas" },
+    { "path": "../packages/db" },
+    { "path": "../packages/api" },
+    { "path": "../packages/api-client" }
+  ]
 }

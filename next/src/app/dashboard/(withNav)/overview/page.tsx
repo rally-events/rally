@@ -11,7 +11,7 @@ export default function page() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-12">
+    <div className="flex flex-col gap-4">
       <Button
         onClick={() => {
           sendSignupEmail("dclerici77@gmail.com")
