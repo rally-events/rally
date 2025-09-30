@@ -18,8 +18,5 @@
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"],
-  "references": [
-    { "path": "../schemas" },
-    { "path": "../db" }
-  ]
+  "references": [{ "path": "../schemas" }, { "path": "../db" }]
 }

@@ -57,7 +57,8 @@ export default async function confirmUpload(
       if (width < 500 || width > 12000 || height < 500 || height > 12000) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid poster dimensions. Must be between 500px and 12000px on both dimensions.",
+          message:
+            "Invalid poster dimensions. Must be between 500px and 12000px on both dimensions.",
         })
       }
 

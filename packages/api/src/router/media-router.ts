@@ -1,5 +1,10 @@
 import { protectedProcedure, router } from "../trpc"
-import { generateUploadUrlSchema, confirmUploadSchema, getEventMediaSchema, deleteMediaSchema } from "@rally/schemas"
+import {
+  generateUploadUrlSchema,
+  confirmUploadSchema,
+  getEventMediaSchema,
+  deleteMediaSchema,
+} from "@rally/schemas"
 import generateUploadUrl from "../media/generateUploadUrl"
 import confirmUpload from "../media/confirmUpload"
 import getEventMedia from "../media/getEventMedia"

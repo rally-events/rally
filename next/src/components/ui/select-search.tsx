@@ -28,7 +28,9 @@ export function SelectSearch({
   options: MultiSelectOption[]
   placeholder: string
   value?: string
-  onChange: ((value: string) => void) | ((event: { target: { value: string; name?: string } }) => void)
+  onChange:
+    | ((value: string) => void)
+    | ((event: { target: { value: string; name?: string } }) => void)
   onBlur?: (() => void) | ((event: any) => void)
   name?: string
 } & Omit<React.ComponentPropsWithoutRef<typeof Button>, "onChange" | "value" | "onBlur">) {

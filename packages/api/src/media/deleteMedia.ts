@@ -5,10 +5,7 @@ import type { z } from "zod"
 import type { deleteMediaSchema } from "@rally/schemas"
 import { db, mediaTable, usersTable, eq } from "@rally/db"
 
-export default async function deleteMedia(
-  ctx: Context,
-  input: z.infer<typeof deleteMediaSchema>,
-) {
+export default async function deleteMedia(ctx: Context, input: z.infer<typeof deleteMediaSchema>) {
   const { mediaId } = input
 
   if (!ctx.user) {

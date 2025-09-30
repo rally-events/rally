@@ -128,7 +128,8 @@ export async function validateVideoDimensions(file: File): Promise<VideoValidati
       if (!width || !height) {
         resolve({
           valid: false,
-          error: "Unable to read video dimensions. The file may be corrupted or not a valid video format.",
+          error:
+            "Unable to read video dimensions. The file may be corrupted or not a valid video format.",
         })
         return
       }
@@ -297,7 +298,8 @@ export async function validatePosterDimensions(file: File): Promise<ImageValidat
       URL.revokeObjectURL(url)
       resolve({
         valid: false,
-        error: "Failed to load poster image. The file may be corrupted or not a valid image format.",
+        error:
+          "Failed to load poster image. The file may be corrupted or not a valid image format.",
       })
     }
 

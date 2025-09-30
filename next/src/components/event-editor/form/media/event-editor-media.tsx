@@ -5,10 +5,24 @@ import { useEventEditor } from "../../event-editor-provider"
 import { useCallback, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { api } from "@/lib/trpc/client"
-import { validateImageDimensions, validateVideoDimensions, validatePosterDimensions, validatePDF, formatFileSize } from "@/lib/media-utils"
+import {
+  validateImageDimensions,
+  validateVideoDimensions,
+  validatePosterDimensions,
+  validatePDF,
+  formatFileSize,
+} from "@/lib/media-utils"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { X, Upload, Image as ImageIcon, Video as VideoIcon, FileImage, FileText, Loader2 } from "lucide-react"
+import {
+  X,
+  Upload,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  FileImage,
+  FileText,
+  Loader2,
+} from "lucide-react"
 import { toast } from "sonner"
 
 interface UploadedMedia {
@@ -514,8 +528,8 @@ export default function EventEditorMedia() {
         <CardHeader>
           <CardTitle>Event Poster/Flyer</CardTitle>
           <CardDescription>
-            Upload one event poster or flyer (optional). Must be between 500px and 12,000px on both dimensions,
-            with aspect ratio 11:17, 4:5, 9:16, or 8.5:11, and at most 20MB in size.
+            Upload one event poster or flyer (optional). Must be between 500px and 12,000px on both
+            dimensions, with aspect ratio 11:17, 4:5, 9:16, or 8.5:11, and at most 20MB in size.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -568,7 +582,11 @@ export default function EventEditorMedia() {
           ) : (
             /* Uploaded Poster */
             <div className="relative overflow-hidden rounded-lg border">
-              <img src={poster.url} alt={poster.fileName} className="mx-auto max-h-96 object-contain" />
+              <img
+                src={poster.url}
+                alt={poster.fileName}
+                className="mx-auto max-h-96 object-contain"
+              />
               <div className="bg-muted flex items-center justify-between p-4">
                 <div>
                   <p className="text-sm font-medium">{poster.fileName}</p>
@@ -603,8 +621,8 @@ export default function EventEditorMedia() {
         <CardHeader>
           <CardTitle>PDF Documents</CardTitle>
           <CardDescription>
-            Upload up to 5 PDF documents (optional). These can be event schedules, brochures, programs, or other materials.
-            Each PDF must be at most 10MB in size.
+            Upload up to 5 PDF documents (optional). These can be event schedules, brochures,
+            programs, or other materials. Each PDF must be at most 10MB in size.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -626,9 +644,7 @@ export default function EventEditorMedia() {
             ) : (
               <>
                 <p className="mb-1 text-sm font-medium">
-                  {isPDFDragActive
-                    ? "Drop PDFs here"
-                    : "Drag & drop PDFs here, or click to select"}
+                  {isPDFDragActive ? "Drop PDFs here" : "Drag & drop PDFs here, or click to select"}
                 </p>
                 <p className="text-muted-foreground text-xs">
                   PDF documents (max 10MB each, {pdfs.length}/5 uploaded)
@@ -672,7 +688,9 @@ export default function EventEditorMedia() {
                     <FileText className="text-muted-foreground h-8 w-8" />
                     <div>
                       <p className="text-sm font-medium">{pdf.fileName}</p>
-                      <p className="text-muted-foreground text-xs">{formatFileSize(pdf.fileSize)}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {formatFileSize(pdf.fileSize)}
+                      </p>
                     </div>
                   </div>
                   <Button

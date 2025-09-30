@@ -68,12 +68,14 @@ export const eventEditSchema = z
     ticketCost: z
       .union([z.number().positive("Ticket cost must be positive"), z.literal("other")])
       .optional(),
-    mediaIds: z.object({
-      images: z.array(z.string().uuid()).max(10, "Maximum 10 images allowed"),
-      video: z.string().uuid().optional(),
-      poster: z.string().uuid().optional(),
-      pdfs: z.array(z.string().uuid()).max(5, "Maximum 5 PDFs allowed"),
-    }).optional(),
+    mediaIds: z
+      .object({
+        images: z.array(z.string().uuid()).max(10, "Maximum 10 images allowed"),
+        video: z.string().uuid().optional(),
+        poster: z.string().uuid().optional(),
+        pdfs: z.array(z.string().uuid()).max(5, "Maximum 5 PDFs allowed"),
+      })
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // Validate end datetime is at least 15 minutes after start
@@ -158,12 +160,14 @@ export const eventEditOptionalSchema = z
     ticketCost: z
       .union([z.number().positive("Ticket cost must be positive"), z.literal("other")])
       .optional(),
-    mediaIds: z.object({
-      images: z.array(z.string().uuid()).max(10, "Maximum 10 images allowed"),
-      video: z.string().uuid().optional(),
-      poster: z.string().uuid().optional(),
-      pdfs: z.array(z.string().uuid()).max(5, "Maximum 5 PDFs allowed"),
-    }).optional(),
+    mediaIds: z
+      .object({
+        images: z.array(z.string().uuid()).max(10, "Maximum 10 images allowed"),
+        video: z.string().uuid().optional(),
+        poster: z.string().uuid().optional(),
+        pdfs: z.array(z.string().uuid()).max(5, "Maximum 5 PDFs allowed"),
+      })
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // Only validate if both dates are provided
