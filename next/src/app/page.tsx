@@ -1,5 +1,4 @@
 import { api } from "@/lib/trpc/server"
-import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
 
 export default async function Home() {
