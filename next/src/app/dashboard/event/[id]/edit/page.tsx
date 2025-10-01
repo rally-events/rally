@@ -11,19 +11,20 @@ export default async function page({ params }: { params: Promise<{ id: string }>
   const caller = await api()
   const [event, user] = await Promise.all([
     caller.event.getEvent({
-      id,
+      id: id,
+      withOrganization: true,
       withMedia: true,
-      withUpdatedByUser: true,
     }),
-    caller.user.getUserInfo({ withOrganization: true }),
+    caller.user.getUserInfo(),
   ])
+
   if (!user || !event) {
     notFound()
   }
-  if (user.organizationId !== event.organizationId || !user.organization) {
+  if (user.organizationId !== event.organizationId || !event.organization) {
     notFound()
   }
-  console.log(event.updatedByUser)
+
   return (
     <EventEditorProvider event={event} userInfo={user}>
       <EventEditorDisplay />

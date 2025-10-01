@@ -16,9 +16,21 @@ export default async function getEventMedia(
   }
 
   // Get the user's organization
-  const user = await db.query.usersTable.findFirst({
-    where: eq(usersTable.id, ctx.user.id),
-  })
+  const [user, event] = await Promise.all([
+    db.query.usersTable.findFirst({
+      where: eq(usersTable.id, ctx.user.id),
+    }),
+    db.query.eventsTable.findFirst({
+      where: eq(eventsTable.id, eventId),
+      with: {
+        media: {
+          with: {
+            media: true,
+          },
+        },
+      },
+    }),
+  ])
 
   if (!user || !user.organizationId) {
     throw new TRPCError({
@@ -28,9 +40,6 @@ export default async function getEventMedia(
   }
 
   // Verify the event exists and belongs to user's organization
-  const event = await db.query.eventsTable.findFirst({
-    where: eq(eventsTable.id, eventId),
-  })
 
   if (!event) {
     throw new TRPCError({
@@ -47,17 +56,11 @@ export default async function getEventMedia(
     })
   }
 
-  // Fetch all media for the event
-  const media = await db.query.mediaTable.findMany({
-    where: eq(mediaTable.eventId, eventId),
-    orderBy: [desc(mediaTable.createdAt)],
-  })
-
   // Generate presigned download URLs for each media item
   const mediaWithUrls = await Promise.all(
-    media.map(async (item) => ({
+    event.media.map(async (item) => ({
       ...item,
-      downloadUrl: await generatePresignedDownloadUrl(item.r2FileKey, 3600), // 1 hour expiry
+      downloadUrl: await generatePresignedDownloadUrl(item.media.r2FileKey, 3600), // 1 hour expiry
     })),
   )
 

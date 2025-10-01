@@ -1,10 +1,10 @@
 "use client"
 
+import styles from "../../event-editor.module.css"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useEventEditor } from "../../event-editor-provider"
 import { useCallback, useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { api } from "@/lib/trpc/client"
 import {
   validateImageDimensions,
   validateVideoDimensions,
@@ -16,22 +16,14 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
   X,
-  Upload,
   Image as ImageIcon,
   Video as VideoIcon,
   FileImage,
   FileText,
-  Loader2,
+  AlertTriangleIcon,
 } from "lucide-react"
 import { toast } from "sonner"
-
-interface UploadedMedia {
-  id: string
-  url: string
-  type: "image" | "video" | "poster" | "pdf"
-  fileName: string
-  fileSize: number
-}
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface UploadProgress {
   fileName: string
@@ -40,18 +32,15 @@ interface UploadProgress {
 }
 
 export default function EventEditorMedia() {
-  const { eventId, uploadedMedia, setUploadedMedia } = useEventEditor()
+  const { event, uploadedMedia, setUploadedMedia, generateUploadUrl, confirmUpload, deleteMedia } =
+    useEventEditor()
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<Record<string, UploadProgress>>({})
 
-  const generateUploadUrl = api.media.generateUploadUrl.useMutation()
-  const confirmUpload = api.media.confirmUpload.useMutation()
-  const deleteMedia = api.media.deleteMedia.useMutation()
-
-  const images = uploadedMedia.filter((m) => m.type === "image")
-  const video = uploadedMedia.find((m) => m.type === "video")
-  const poster = uploadedMedia.find((m) => m.type === "poster")
-  const pdfs = uploadedMedia.filter((m) => m.type === "pdf")
+  const images = uploadedMedia.filter((m) => m.media.mediaType === "image")
+  const video = uploadedMedia.find((m) => m.media.mediaType === "video")
+  const poster = uploadedMedia.find((m) => m.media.mediaType === "poster")
+  const pdfs = uploadedMedia.filter((m) => m.media.mediaType === "pdf")
 
   const handleUploadFile = useCallback(
     async (file: File, mediaType: "image" | "video" | "poster" | "pdf") => {
@@ -107,10 +96,13 @@ export default function EventEditorMedia() {
 
         // Step 1: Get presigned upload URL
         const { uploadUrl, fileKey } = await generateUploadUrl.mutateAsync({
-          eventId,
+          eventId: event.id,
           mimeType: file.type,
           fileSize: file.size,
           mediaType,
+          width: width || undefined,
+          height: height || undefined,
+          duration: duration || undefined,
         })
 
         setUploadProgress((prev) => ({
@@ -138,14 +130,12 @@ export default function EventEditorMedia() {
 
         // Step 3: Confirm upload and save metadata
         const mediaRecord = await confirmUpload.mutateAsync({
-          eventId,
+          eventId: event.id,
           fileKey,
           fileSize: file.size,
           mimeType: file.type,
-          width,
-          height,
-          duration,
           mediaType,
+          fileName: file.name,
         })
 
         setUploadProgress((prev) => ({
@@ -153,24 +143,25 @@ export default function EventEditorMedia() {
           [progressKey]: { fileName: file.name, progress: 100 },
         }))
 
-        // Add to uploaded media list
-        const newMedia: UploadedMedia = {
-          id: mediaRecord.id,
-          url: URL.createObjectURL(file), // Temporary preview URL
-          type: mediaType,
-          fileName: file.name,
-          fileSize: file.size,
-        }
+        setUploadedMedia((prev) => [
+          ...prev,
+          {
+            eventId: event.id,
+            mediaId: mediaRecord.id,
+            downloadUrl: URL.createObjectURL(file), // Temporary preview URL
+            media: {
+              ...mediaRecord,
+              createdAt: new Date(mediaRecord.createdAt),
+            },
+          },
+        ])
 
-        setUploadedMedia((prev) => [...prev, newMedia])
-
-        // Remove progress after a delay
         setTimeout(() => {
           setUploadProgress((prev) => {
             const { [progressKey]: _, ...rest } = prev
             return rest
           })
-        }, 2000)
+        }, 500)
 
         const typeLabel = isPDF ? "PDF" : isPoster ? "Poster" : isVideo ? "Video" : "Image"
         toast.success(`${typeLabel} uploaded successfully`)
@@ -182,7 +173,6 @@ export default function EventEditorMedia() {
         }))
         toast.error(errorMessage)
 
-        // Remove error after delay
         setTimeout(() => {
           setUploadProgress((prev) => {
             const { [progressKey]: _, ...rest } = prev
@@ -191,7 +181,7 @@ export default function EventEditorMedia() {
         }, 5000)
       }
     },
-    [eventId, generateUploadUrl, confirmUpload, setUploadedMedia],
+    [event.id, generateUploadUrl, confirmUpload, setUploadedMedia],
   )
 
   const onDropImages = useCallback(
@@ -326,7 +316,7 @@ export default function EventEditorMedia() {
   const handleDelete = async (mediaId: string) => {
     try {
       await deleteMedia.mutateAsync({ mediaId })
-      setUploadedMedia((prev) => prev.filter((m) => m.id !== mediaId))
+      setUploadedMedia((prev) => prev.filter((m) => m.mediaId !== mediaId))
       toast.success("Media deleted successfully")
     } catch (error) {
       toast.error("Failed to delete media")
@@ -376,25 +366,17 @@ export default function EventEditorMedia() {
 
           {/* Upload Progress */}
           {Object.entries(uploadProgress).map(([key, progress]) => {
-            const isImage = !progress.fileName.match(/\.(mp4|mov|webm)$/i)
-            if (!isImage) return null
-
-            return (
-              <div key={key} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex-1 truncate">{progress.fileName}</span>
-                  {progress.error ? (
-                    <span className="text-destructive text-xs">{progress.error}</span>
-                  ) : (
-                    <span className="text-muted-foreground">{progress.progress}%</span>
-                  )}
-                </div>
-                <Progress
-                  value={progress.progress}
-                  className={progress.error ? "bg-destructive/20" : ""}
+            // TODO: speed up rendering by including file type in the object so we don't have to do regex checks here and in all indicators
+            if (!progress.fileName.match(/\.(mp4|mov|webm)$/i)) {
+              return (
+                <UploadProgress
+                  key={key}
+                  progress={progress.progress}
+                  error={progress.error}
+                  fileName={progress.fileName}
                 />
-              </div>
-            )
+              )
+            }
           })}
 
           {/* Uploaded Images Grid */}
@@ -402,30 +384,27 @@ export default function EventEditorMedia() {
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {images.map((media) => (
                 <div
-                  key={media.id}
+                  key={media.mediaId}
                   className="group relative aspect-square overflow-hidden rounded-lg border"
                 >
                   <img
-                    src={media.url}
-                    alt={media.fileName}
+                    src={media.downloadUrl}
+                    alt={media.media.fileName}
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
                     <Button
                       size="icon"
                       variant="destructive"
-                      onClick={() => handleDelete(media.id)}
+                      onClick={() => handleDelete(media.mediaId)}
+                      isLoading={deleteMedia.isPending}
                       disabled={deleteMedia.isPending}
                     >
-                      {deleteMedia.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <X className="h-4 w-4" />
-                      )}
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="absolute right-0 bottom-0 left-0 truncate bg-black/70 p-2 text-xs text-white">
-                    {media.fileName} ({formatFileSize(media.fileSize)})
+                    {media.media.fileName} ({formatFileSize(media.media.fileSize)})
                   </div>
                 </div>
               ))}
@@ -469,53 +448,38 @@ export default function EventEditorMedia() {
 
               {/* Video Upload Progress */}
               {Object.entries(uploadProgress).map(([key, progress]) => {
-                const isVideo = progress.fileName.match(/\.(mp4|mov|webm)$/i)
-                if (!isVideo) return null
-
-                return (
-                  <div key={key} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex-1 truncate">{progress.fileName}</span>
-                      {progress.error ? (
-                        <span className="text-destructive text-xs">{progress.error}</span>
-                      ) : (
-                        <span className="text-muted-foreground">{progress.progress}%</span>
-                      )}
-                    </div>
-                    <Progress
-                      value={progress.progress}
-                      className={progress.error ? "bg-destructive/20" : ""}
+                if (progress.fileName.match(/\.(mp4|mov|webm)$/i)) {
+                  return (
+                    <UploadProgress
+                      key={key}
+                      progress={progress.progress}
+                      error={progress.error}
+                      fileName={progress.fileName}
                     />
-                  </div>
-                )
+                  )
+                }
+                return null
               })}
             </>
           ) : (
             /* Uploaded Video */
             <div className="relative overflow-hidden rounded-lg border">
-              <video src={video.url} controls className="w-full" />
+              <video src={video.downloadUrl} controls className="w-full" />
               <div className="bg-muted flex items-center justify-between p-4">
                 <div>
-                  <p className="text-sm font-medium">{video.fileName}</p>
-                  <p className="text-muted-foreground text-xs">{formatFileSize(video.fileSize)}</p>
+                  <p className="text-sm font-medium">{video.media.fileName}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatFileSize(video.media.fileSize)}
+                  </p>
                 </div>
                 <Button
-                  size="sm"
+                  size="icon"
                   variant="destructive"
-                  onClick={() => handleDelete(video.id)}
+                  onClick={() => handleDelete(video.mediaId)}
                   disabled={deleteMedia.isPending}
+                  isLoading={deleteMedia.isPending}
                 >
-                  {deleteMedia.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <X className="mr-2 h-4 w-4" />
-                      Delete
-                    </>
-                  )}
+                  <X />
                 </Button>
               </div>
             </div>
@@ -560,20 +524,12 @@ export default function EventEditorMedia() {
               {Object.entries(uploadProgress).map(([key, progress]) => {
                 if (!poster && progress.fileName.match(/poster/i)) {
                   return (
-                    <div key={key} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex-1 truncate">{progress.fileName}</span>
-                        {progress.error ? (
-                          <span className="text-destructive text-xs">{progress.error}</span>
-                        ) : (
-                          <span className="text-muted-foreground">{progress.progress}%</span>
-                        )}
-                      </div>
-                      <Progress
-                        value={progress.progress}
-                        className={progress.error ? "bg-destructive/20" : ""}
-                      />
-                    </div>
+                    <UploadProgress
+                      key={key}
+                      progress={progress.progress}
+                      error={progress.error}
+                      fileName={progress.fileName}
+                    />
                   )
                 }
                 return null
@@ -583,32 +539,25 @@ export default function EventEditorMedia() {
             /* Uploaded Poster */
             <div className="relative overflow-hidden rounded-lg border">
               <img
-                src={poster.url}
-                alt={poster.fileName}
+                src={poster.downloadUrl}
+                alt={poster.media.fileName}
                 className="mx-auto max-h-96 object-contain"
               />
               <div className="bg-muted flex items-center justify-between p-4">
                 <div>
-                  <p className="text-sm font-medium">{poster.fileName}</p>
-                  <p className="text-muted-foreground text-xs">{formatFileSize(poster.fileSize)}</p>
+                  <p className="text-sm font-medium">{poster.media.fileName}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatFileSize(poster.media.fileSize)}
+                  </p>
                 </div>
                 <Button
-                  size="sm"
+                  size="icon"
                   variant="destructive"
-                  onClick={() => handleDelete(poster.id)}
+                  onClick={() => handleDelete(poster.mediaId)}
                   disabled={deleteMedia.isPending}
+                  isLoading={deleteMedia.isPending}
                 >
-                  {deleteMedia.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <X className="mr-2 h-4 w-4" />
-                      Delete
-                    </>
-                  )}
+                  <X />
                 </Button>
               </div>
             </div>
@@ -655,25 +604,17 @@ export default function EventEditorMedia() {
 
           {/* PDF Upload Progress */}
           {Object.entries(uploadProgress).map(([key, progress]) => {
-            const isPDF = progress.fileName.match(/\.pdf$/i)
-            if (!isPDF) return null
-
-            return (
-              <div key={key} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex-1 truncate">{progress.fileName}</span>
-                  {progress.error ? (
-                    <span className="text-destructive text-xs">{progress.error}</span>
-                  ) : (
-                    <span className="text-muted-foreground">{progress.progress}%</span>
-                  )}
-                </div>
-                <Progress
-                  value={progress.progress}
-                  className={progress.error ? "bg-destructive/20" : ""}
+            if (progress.fileName.match(/\.pdf$/i)) {
+              return (
+                <UploadProgress
+                  key={key}
+                  progress={progress.progress}
+                  error={progress.error}
+                  fileName={progress.fileName}
                 />
-              </div>
-            )
+              )
+            }
+            return null
           })}
 
           {/* Uploaded PDFs List */}
@@ -681,29 +622,26 @@ export default function EventEditorMedia() {
             <div className="space-y-2">
               {pdfs.map((pdf) => (
                 <div
-                  key={pdf.id}
+                  key={pdf.mediaId}
                   className="bg-muted flex items-center justify-between rounded-lg border p-4"
                 >
                   <div className="flex items-center gap-3">
                     <FileText className="text-muted-foreground h-8 w-8" />
                     <div>
-                      <p className="text-sm font-medium">{pdf.fileName}</p>
+                      <p className="text-sm font-medium">{pdf.media.fileName}</p>
                       <p className="text-muted-foreground text-xs">
-                        {formatFileSize(pdf.fileSize)}
+                        {formatFileSize(pdf.media.fileSize)}
                       </p>
                     </div>
                   </div>
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="destructive"
-                    onClick={() => handleDelete(pdf.id)}
+                    onClick={() => handleDelete(pdf.mediaId)}
                     disabled={deleteMedia.isPending}
+                    isLoading={deleteMedia.isPending}
                   >
-                    {deleteMedia.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <X className="h-4 w-4" />
-                    )}
+                    <X />
                   </Button>
                 </div>
               ))}
@@ -711,6 +649,34 @@ export default function EventEditorMedia() {
           )}
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+const UploadProgress = ({
+  progress,
+  error,
+  fileName,
+}: {
+  progress: number
+  error?: string
+  fileName: string
+}) => {
+  if (error) {
+    return (
+      <Alert variant="destructive" className={`${styles.alertFadeOut}`}>
+        <AlertTriangleIcon className="size-4" />
+        <AlertDescription>Failed to upload {fileName}</AlertDescription>
+      </Alert>
+    )
+  }
+  return (
+    <div className={`space-y-1 ${progress === 100 ? styles.loadingFadeOut : ""}`}>
+      <div className="flex items-center justify-between text-sm">
+        <span className="flex-1 truncate">{fileName}</span>
+        <span className="text-muted-foreground">{progress}%</span>
+      </div>
+      <Progress value={progress} />
     </div>
   )
 }

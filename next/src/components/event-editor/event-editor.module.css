@@ -1,0 +1,16 @@
+.loadingFadeOut {
+  animation: fadeOut 0.5s both ease-in-out;
+}
+
+.alertFadeOut {
+  animation: fadeOut 0.5s 4.5s both ease-in-out;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

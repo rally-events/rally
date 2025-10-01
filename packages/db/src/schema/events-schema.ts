@@ -1,4 +1,13 @@
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core"
 import { organizationsTable } from "./organization-schema"
 import { relations } from "drizzle-orm"
 import { mediaTable } from "./media-schema"
@@ -45,6 +54,30 @@ export const eventsTable = pgTable("events", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
+export const eventsMediaTable = pgTable(
+  "events_media",
+  {
+    eventId: uuid("event_id")
+      .references(() => eventsTable.id, { onDelete: "cascade" })
+      .notNull(),
+    mediaId: uuid("media_id")
+      .references(() => mediaTable.id, { onDelete: "cascade" })
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.eventId, table.mediaId] })],
+)
+
+export const eventsMediaRelations = relations(eventsMediaTable, ({ one }) => ({
+  event: one(eventsTable, {
+    fields: [eventsMediaTable.eventId],
+    references: [eventsTable.id],
+  }),
+  media: one(mediaTable, {
+    fields: [eventsMediaTable.mediaId],
+    references: [mediaTable.id],
+  }),
+}))
+
 export const eventsRelations = relations(eventsTable, ({ one, many }) => ({
   organization: one(organizationsTable, {
     fields: [eventsTable.organizationId],
@@ -54,5 +87,5 @@ export const eventsRelations = relations(eventsTable, ({ one, many }) => ({
     fields: [eventsTable.updatedBy],
     references: [usersTable.id],
   }),
-  media: many(mediaTable),
+  media: many(eventsMediaTable),
 }))

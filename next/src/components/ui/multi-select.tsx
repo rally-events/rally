@@ -44,8 +44,6 @@ export function MultiSelect({ options, placeholder }: MultiSelectProps) {
 
   const selectables = options.filter((option) => !selected.includes(option))
 
-  console.log(selectables, selected, inputValue)
-
   return (
     <Command onKeyDown={handleKeyDown} className="overflow-visible bg-transparent">
       <div className="group border-input ring-offset-background focus-within:ring-ring rounded-md border px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-offset-2">

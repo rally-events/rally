@@ -20,10 +20,11 @@ import {
 import { useRouter } from "next/navigation"
 import { useEventEditor } from "../event-editor-provider"
 import { formatDistanceToNow } from "date-fns"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function EventEditorHeader() {
   const router = useRouter()
-  const { eventData, userInfo } = useEventEditor()
+  const { lastUpdated, saveStatus } = useEventEditor()
 
   return (
     <header className="flex items-center justify-between py-4">
@@ -33,14 +34,22 @@ export default function EventEditorHeader() {
         </Button>
       </div>
       <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger className="-mr-1 p-1 outline-none">
+            <div
+              className={`size-1.5 rounded-full transition-colors duration-150 ${saveStatus === "saving" && "bg-muted-foreground"} ${saveStatus === "saved" && "bg-green-500"} ${saveStatus === "error" && "bg-red-500"} `}
+            />
+          </TooltipTrigger>
+          <TooltipContent>
+            {saveStatus === "saving" && "Saving changes..."}
+            {saveStatus === "saved" && "Up to date"}
+            {saveStatus === "error" && "Error saving changes"}
+          </TooltipContent>
+        </Tooltip>
         <span className="text-muted-foreground text-sm">
-          Edited {formatDistanceToNow(eventData.updatedAt, { addSuffix: true })} by{" "}
-          <span className="cursor-pointer font-medium underline">
-            {userInfo.id === eventData.updatedBy
-              ? "You"
-              : `${eventData.updatedByUser?.firstName} ${eventData.updatedByUser?.lastName.charAt(0)}.`}
-          </span>
+          Edited {formatDistanceToNow(lastUpdated, { addSuffix: true })}
         </span>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">

@@ -58,8 +58,6 @@ export function useAddressAutocomplete({
           query: searchQuery,
         })
 
-        console.log("Google Places API data:", result)
-
         setPredictions(result)
         setShowSuggestions(true)
       } catch (error) {
@@ -73,8 +71,12 @@ export function useAddressAutocomplete({
   )
 
   const handleInputChange = useCallback(
-    (value: string) => {
+    (value: string, bypassSearch = false) => {
       setQuery(value)
+
+      if (bypassSearch) {
+        return
+      }
 
       // Clear previous timeout
       if (debounceTimeoutRef.current) {

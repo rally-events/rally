@@ -122,7 +122,6 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     if (!isSubmit) {
       const validationResult = onboardingFormOptionalSchema.safeParse(newValues)
       if (!validationResult.success) {
-        console.log("inValid values:", validationResult.error)
         return
       }
     }

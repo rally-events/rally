@@ -2,13 +2,13 @@ import { protectedProcedure, router } from "../trpc"
 import {
   generateUploadUrlSchema,
   confirmUploadSchema,
-  getEventMediaSchema,
   deleteMediaSchema,
+  getEventMediaSchema,
 } from "@rally/schemas"
 import generateUploadUrl from "../media/generateUploadUrl"
 import confirmUpload from "../media/confirmUpload"
-import getEventMedia from "../media/getEventMedia"
 import deleteMedia from "../media/deleteMedia"
+import getEventMedia from "../media/getEventMedia"
 
 export const mediaRouter = router({
   generateUploadUrl: protectedProcedure

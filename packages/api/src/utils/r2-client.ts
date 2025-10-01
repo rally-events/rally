@@ -1,6 +1,7 @@
 import {
   S3Client,
   PutObjectCommand,
+  GetObjectCommand,
   DeleteObjectCommand,
   type DeleteObjectCommandInput,
 } from "@aws-sdk/client-s3"
@@ -58,7 +59,7 @@ export async function generatePresignedDownloadUrl(
   fileKey: string,
   expiresIn: number = 3600,
 ): Promise<string> {
-  const command = new PutObjectCommand({
+  const command = new GetObjectCommand({
     Bucket: BUCKET_NAME,
     Key: fileKey,
   })

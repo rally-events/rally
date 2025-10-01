@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete"
 import { LoaderIcon } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { toast } from "sonner"
 
 export default function EventFormBasicsAddress() {
   const {
@@ -15,7 +16,7 @@ export default function EventFormBasicsAddress() {
     watch,
     formState: { errors },
   } = useFormContext<EventEditSchema>()
-  const { organization } = useEventEditor()
+  const { event } = useEventEditor()
 
   const {
     query,
@@ -40,12 +41,17 @@ export default function EventFormBasicsAddress() {
   })
 
   const onUseOrganizationAddress = () => {
+    if (!event.organization) {
+      toast.error("Organization not found")
+      return
+    }
+    handleInputChange(event.organization.address, true)
     setValue("usingOrganizationAddress", true)
-    setValue("streetAddress", organization.address)
-    setValue("city", organization.city)
-    setValue("state", organization.state)
-    setValue("zipCode", organization.zipCode)
-    setValue("country", organization.country)
+    setValue("streetAddress", event.organization.address)
+    setValue("city", event.organization.city)
+    setValue("state", event.organization.state)
+    setValue("zipCode", event.organization.zipCode)
+    setValue("country", event.organization.country)
   }
 
   const usingAddress = watch("usingOrganizationAddress")

@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme/theme-provider"
 import React from "react"
 import Script from "next/script"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 export default function layout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,8 +19,10 @@ export default function layout({ children }: { children: React.ReactNode }) {
         `}
       </Script>
       <ThemeProvider>
-        <Toaster richColors />
-        {children}
+        <TooltipProvider>
+          <Toaster richColors />
+          {children}
+        </TooltipProvider>
       </ThemeProvider>
     </>
   )

@@ -14,3 +14,9 @@ export const getEventSchema = z.object({
   withMedia: z.boolean().optional(),
   withUpdatedByUser: z.boolean().optional(),
 })
+
+export const searchEventsSchema = z.object({
+  organizationId: z.string(),
+  limit: z.number().optional().default(12),
+  page: z.number().optional().default(0),
+})

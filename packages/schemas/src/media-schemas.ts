@@ -4,14 +4,6 @@ export const generateUploadUrlSchema = z.object({
   eventId: z.string().uuid("Invalid event ID"),
   mimeType: z.string().min(1, "MIME type is required"),
   fileSize: z.number().int().positive("File size must be positive"),
-  mediaType: z.enum(["image", "video", "poster", "pdf"]).optional(),
-})
-
-export const confirmUploadSchema = z.object({
-  eventId: z.string().uuid("Invalid event ID"),
-  fileKey: z.string().min(1, "File key is required"),
-  fileSize: z.number().int().positive("File size must be positive"),
-  mimeType: z.string().min(1, "MIME type is required"),
   width: z
     .number()
     .int()
@@ -30,6 +22,15 @@ export const confirmUploadSchema = z.object({
     .max(120, "Video duration must be at most 120 seconds")
     .optional(),
   mediaType: z.enum(["image", "video", "poster", "pdf"]).optional(),
+})
+
+export const confirmUploadSchema = z.object({
+  eventId: z.string().uuid("Invalid event ID"),
+  fileKey: z.string().min(1, "File key is required"),
+  fileSize: z.number().int().positive("File size must be positive"),
+  mimeType: z.string().min(1, "MIME type is required"),
+  mediaType: z.enum(["image", "video", "poster", "pdf"]),
+  fileName: z.string().min(1, "File name is required"),
 })
 
 export const getEventMediaSchema = z.object({
