@@ -1,5 +1,5 @@
 // this is temp, just for scaffolding
-
+import { organizationMembersTable, organizationsTable } from "./organization-schema"
 import { pgTable, uuid, text, timestamp, pgSchema } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
@@ -36,7 +36,3 @@ export const usersRelations = relations(usersTable, ({ one }) => ({
     references: [organizationMembersTable.userId],
   }),
 }))
-
-// This import is placed here to avoid circular dependency issues
-// It will be resolved when the schema is loaded
-import { organizationMembersTable, organizationsTable } from "./organization-schema"

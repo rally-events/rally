@@ -23,8 +23,13 @@ export default async function getEvent(ctx: TRPCContext, input: z.infer<typeof g
     where: eq(eventsTable.id, input.id),
     with: {
       organization: input.withOrganization ? true : undefined,
+      media: input.withMedia ? true : undefined,
+      updatedByUser: true,
+      // updatedByUser: input.withUpdatedByUser ? true : undefined,
     },
   })
+
+  console.log(event!.updatedByUser) // prints full obj, but ts thinks its only {id: string}
 
   return event
 }

@@ -42,6 +42,7 @@ export default async function createEvent(ctx: TRPCContext) {
       .values({
         name: "New Event",
         organizationId: user.organization.id,
+        updatedBy: ctx.user.id,
       })
       .returning({ id: eventsTable.id })
     return event.id

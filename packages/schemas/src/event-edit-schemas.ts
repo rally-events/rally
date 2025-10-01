@@ -139,6 +139,7 @@ export const eventEditSchema = z
 
 export const eventEditOptionalSchema = z
   .object({
+    id: z.string().min(1, "ID is required"),
     name: z.string().max(255, "Name must not exceed 255 characters").optional(),
     description: z.string().max(3000, "Description must not exceed 3000 characters").optional(),
     eventType: eventTypeEnum.optional(),

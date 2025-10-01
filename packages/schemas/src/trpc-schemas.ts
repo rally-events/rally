@@ -11,4 +11,6 @@ export const getUserInfoSchema = z
 export const getEventSchema = z.object({
   id: z.string(),
   withOrganization: z.boolean().optional(),
+  withMedia: z.boolean().optional(),
+  withUpdatedByUser: z.boolean().optional(),
 })

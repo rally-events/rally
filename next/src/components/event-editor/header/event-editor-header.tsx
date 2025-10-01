@@ -18,9 +18,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
+import { useEventEditor } from "../event-editor-provider"
+import { formatDistanceToNow } from "date-fns"
 
 export default function EventEditorHeader() {
   const router = useRouter()
+  const { eventData, userInfo } = useEventEditor()
+
   return (
     <header className="flex items-center justify-between py-4">
       <div className="flex items-center gap-2">
@@ -30,7 +34,12 @@ export default function EventEditorHeader() {
       </div>
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-sm">
-          Edited 5 minutes ago by <span className="font-medium underline">You</span>
+          Edited {formatDistanceToNow(eventData.updatedAt, { addSuffix: true })} by{" "}
+          <span className="cursor-pointer font-medium underline">
+            {userInfo.id === eventData.updatedBy
+              ? "You"
+              : `${eventData.updatedByUser?.firstName} ${eventData.updatedByUser?.lastName.charAt(0)}.`}
+          </span>
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
