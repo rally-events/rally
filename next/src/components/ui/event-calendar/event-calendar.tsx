@@ -93,7 +93,6 @@ function MultiRunEvent({ runs, href }: { runs: EventRun[]; href: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 
-  console.log(runs)
   return (
     <>
       {runs.map((run, index) => {
@@ -449,6 +448,9 @@ export default function EventCalendar({ events }: EventCalendarProps) {
             runsByEvent.get(run.eventId)!.push(run)
           })
 
+          // Track which events we've already rendered to avoid duplicates
+          const renderedEvents = new Set<string>()
+
           return (
             <div
               key={cellIndex}
@@ -462,6 +464,12 @@ export default function EventCalendar({ events }: EventCalendarProps) {
               {runsStartingHere
                 .filter((run) => run.row <= 2) // Only show first 2 rows
                 .map((run) => {
+                  // Skip if we've already rendered this event
+                  if (renderedEvents.has(run.eventId)) {
+                    return null
+                  }
+                  renderedEvents.add(run.eventId)
+
                   const allRunsForEvent = runsByEvent.get(run.eventId)!
                   const visibleRuns = allRunsForEvent.filter((r) => r.row <= 2)
 
