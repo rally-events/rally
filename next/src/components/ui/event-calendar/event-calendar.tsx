@@ -93,42 +93,71 @@ function MultiRunEvent({ runs, href }: { runs: EventRun[]; href: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 
+  const trueStartIndex = runs.reduce(
+    (min, run) => Math.min(min, run.startCellIndex),
+    runs[0].startCellIndex,
+  )
+
+  const displayedRun = runs[0]
+
   return (
     <>
-      {runs.map((run, index) => {
-        const cellsSpanned = run.endCellIndex - run.startCellIndex + 1
-        const widthPercent = (cellsSpanned - 1) * 100 + (run.endPercent - run.startPercent)
-        const gapsSpanned = cellsSpanned - 1
+      <HoverCard open={isOpen} onOpenChange={setIsOpen} openDelay={50} closeDelay={100}>
+        <div className="group">
+          {runs.map((run, index) => {
+            const cellsSpanned = run.endCellIndex - run.startCellIndex + 1
 
-        // Determine border radius based on position
-        const isFirstRun = index === 0
-        const isLastRun = index === runs.length - 1
+            // For multi-run events that wrap weeks:
+            // First run: extends to edge (endPercent should be 100)
+            // Last run: starts from edge (startPercent should be 0)
+            const isFirstRun = index === 0
+            const isLastRun = index === runs.length - 1
 
-        return (
-          <HoverCard key={`${run.eventId}-run-${index}`} open={isOpen} onOpenChange={setIsOpen}>
-            <HoverCardTrigger asChild>
-              <div
-                className={`pointer-events-auto absolute ${run.color} ${isFirstRun && !isLastRun ? "rounded-l" : ""} ${!isFirstRun && isLastRun ? "rounded-r" : ""} ${!isFirstRun && !isLastRun ? "rounded-none" : ""} ${isFirstRun && isLastRun ? "rounded" : ""} z-10 cursor-pointer truncate px-1 text-xs text-white transition-opacity hover:opacity-90`}
-                onClick={() => router.push(`/dashboard/event/${href}/edit`)}
-                style={{
-                  top: `${run.verticalPosition}%`,
-                  left: `${run.startPercent}%`,
-                  width: `calc(${widthPercent}% + ${gapsSpanned} * 0.25rem)`,
-                  height: "30%",
-                  maxHeight: "24px",
-                }}
-                onMouseEnter={() => setIsOpen(true)}
-                onMouseLeave={() => setIsOpen(false)}
-              >
-                {run.eventName}
-              </div>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-auto">
-              <div className="text-sm font-medium">{run.eventName}</div>
-            </HoverCardContent>
-          </HoverCard>
-        )
-      })}
+            // Calculate width based on whether this extends to cell edge
+            let widthPercent: number
+            let gapsSpanned: number
+
+            if (run.endPercent === 100) {
+              // Extends to right edge of cell (Saturday wrapping to Sunday)
+              widthPercent = 100 - run.startPercent + (cellsSpanned - 1) * 100
+              gapsSpanned = cellsSpanned - 1
+            } else if (run.startPercent === 0) {
+              // Starts from left edge of cell (Sunday after Saturday wrap)
+              widthPercent = run.endPercent + (cellsSpanned - 1) * 100
+              gapsSpanned = cellsSpanned - 1
+            } else {
+              // Normal case: doesn't wrap
+              widthPercent = (cellsSpanned - 1) * 100 + (run.endPercent - run.startPercent)
+              gapsSpanned = cellsSpanned - 1
+            }
+
+            const inFromLeft = Math.floor(run.startCellIndex / 7) > 0.99
+
+            return (
+              <HoverCardTrigger asChild key={`${run.eventId}-run-${index}`}>
+                <div
+                  className={`pointer-events-auto absolute group-hover:opacity-50 ${run.color} ${isFirstRun && !isLastRun ? "rounded-l" : ""} ${!isFirstRun && isLastRun ? "rounded-r" : ""} ${!isFirstRun && !isLastRun ? "rounded-none" : ""} ${isFirstRun && isLastRun ? "rounded" : ""} z-10 cursor-pointer truncate px-1 text-xs text-white transition-opacity`}
+                  onClick={() => router.push(`/dashboard/event/${href}/edit`)}
+                  style={{
+                    top: `calc(${run.verticalPosition}% + ${!isFirstRun ? 100 * index : 0}% + ${isLastRun ? 0.25 * (index + 1) : 0}rem)`,
+                    left: `calc((${inFromLeft ? trueStartIndex * 100 : run.startPercent}% + ${inFromLeft ? 0.25 * trueStartIndex : 0}rem) ${inFromLeft ? "* -1" : ""})`,
+                    width: `calc(${widthPercent}% + ${gapsSpanned} * 0.25rem)`,
+                    height: "30%",
+                    maxHeight: "24px",
+                  }}
+                  // onMouseEnter={() => setIsOpen(true)}
+                  // onMouseLeave={() => setIsOpen(false)}
+                >
+                  {run.eventName}
+                </div>
+              </HoverCardTrigger>
+            )
+          })}
+        </div>
+        <HoverCardContent className="w-auto">
+          <div className="text-sm font-medium">{displayedRun.eventName}</div>
+        </HoverCardContent>
+      </HoverCard>
     </>
   )
 }
@@ -458,7 +487,7 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                 isEmptyCell ? "" : isToday ? "bg-blue-500 text-white" : "bg-surface"
               }`}
             >
-              {day !== null && <span className="relative z-10 text-sm font-medium">{day}</span>}
+              {day !== null && <span className="relative text-sm font-medium">{day}</span>}
 
               {/* Render events that start in this cell */}
               {runsStartingHere
@@ -474,8 +503,18 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                   const visibleRuns = allRunsForEvent.filter((r) => r.row <= 2)
 
                   // If this event has multiple runs (wraps), use MultiRunEvent
+                  // Only render it for the first run (earliest cell index)
                   if (visibleRuns.length > 1) {
-                    return <MultiRunEvent key={run.eventId} runs={visibleRuns} href={run.eventId} />
+                    const firstRun = visibleRuns.reduce((earliest, current) =>
+                      current.startCellIndex < earliest.startCellIndex ? current : earliest,
+                    )
+                    // Only render if this is the first run
+                    if (run.startCellIndex === firstRun.startCellIndex) {
+                      return (
+                        <MultiRunEvent key={run.eventId} runs={visibleRuns} href={run.eventId} />
+                      )
+                    }
+                    return null
                   }
 
                   // Single run event
