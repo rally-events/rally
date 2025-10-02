@@ -3,12 +3,8 @@ import React from "react"
 import { Controller, useFormContext } from "react-hook-form"
 import { EventEditSchema } from "../../event-editor-provider"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
-import { Button } from "@/components/ui/button"
-import { ChevronDownIcon } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
 
 export default function EventFormBasicsDates() {
   const {

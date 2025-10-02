@@ -29,7 +29,11 @@ export default async function page() {
           </Card>
         </section>
         <section>
-          <EventCalendar events={events} />
+          <Card>
+            <CardContent>
+              <EventCalendar events={events} />
+            </CardContent>
+          </Card>
         </section>
       </div>
     </div>

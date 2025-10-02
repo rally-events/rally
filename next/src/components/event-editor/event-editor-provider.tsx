@@ -74,6 +74,7 @@ export default function EventEditorProvider({
         // Only save if form is valid
         const isValid = await form.trigger()
         if (!isValid) {
+          console.error("[EventEditor] Autosave failed", form.formState.errors)
           setSaveStatus("error")
           return
         }
@@ -95,12 +96,13 @@ export default function EventEditorProvider({
     })
 
     return () => {
+      console.log("[EventEditor] Unsubscribing from autosave")
       subscription.unsubscribe()
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
     }
-  }, [form, event.id, updateEventMutation])
+  }, [event.id, form.trigger])
 
   // Browser warning for unsaved changes
   useEffect(() => {

@@ -151,11 +151,11 @@ export const eventEditOptionalSchema = z
     state: z.string().optional(),
     country: z.string().optional(),
     zipCode: z.string().optional(),
-    startDatetime: z
+    startDatetime: z.coerce
       .date()
       .min(sixHoursFromNow, "Start time must be at least 6 hours from now")
-      .optional(),
-    endDatetime: z.date().optional(),
+      .optional() as z.ZodOptional<z.ZodDate>,
+    endDatetime: z.coerce.date().optional() as z.ZodOptional<z.ZodDate>,
     expectedAttendees: z
       .object({
         min: z.number().int().positive("Minimum attendees must be positive"),
