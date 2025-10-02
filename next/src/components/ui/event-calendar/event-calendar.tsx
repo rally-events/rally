@@ -7,6 +7,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "../hover-card"
 import { useRouter } from "next/navigation"
 import { OverflowIndicator } from "./overflow-indicator"
 
+// TODO: clean this mf mess up
+
 interface EventCalendarProps {
   events: EventSearchInfo
 }
@@ -482,24 +484,27 @@ export default function EventCalendar({ events }: EventCalendarProps) {
           const renderedEvents = new Set<string>()
 
           // Check for overflow and prepare overflow indicator
-          const overflowSegments = eventSegments.filter(seg => seg.row > 2)
+          const overflowSegments = eventSegments.filter((seg) => seg.row > 2)
           let shouldRenderOverflow = false
           let overflowRuns: EventRun[] = []
 
           if (overflowSegments.length > 0) {
             // Group overflow segments by event to find overall span
-            const overflowEventMap = new Map<string, {
-              eventId: string
-              eventName: string
-              segments: typeof overflowSegments
-              minCellIndex: number
-              maxCellIndex: number
-              minStartPercent: number
-              maxEndPercent: number
-              color: string
-            }>()
+            const overflowEventMap = new Map<
+              string,
+              {
+                eventId: string
+                eventName: string
+                segments: typeof overflowSegments
+                minCellIndex: number
+                maxCellIndex: number
+                minStartPercent: number
+                maxEndPercent: number
+                color: string
+              }
+            >()
 
-            overflowSegments.forEach(seg => {
+            overflowSegments.forEach((seg) => {
               if (!overflowEventMap.has(seg.eventId)) {
                 overflowEventMap.set(seg.eventId, {
                   eventId: seg.eventId,
@@ -509,7 +514,7 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                   maxCellIndex: seg.cellIndex,
                   minStartPercent: seg.startPercent,
                   maxEndPercent: seg.endPercent,
-                  color: seg.color
+                  color: seg.color,
                 })
               } else {
                 const event = overflowEventMap.get(seg.eventId)!
@@ -518,12 +523,16 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                 event.maxCellIndex = Math.max(event.maxCellIndex, seg.cellIndex)
 
                 // Update start/end percentages based on cell position
-                if (seg.cellIndex < event.minCellIndex ||
-                    (seg.cellIndex === event.minCellIndex && seg.startPercent < event.minStartPercent)) {
+                if (
+                  seg.cellIndex < event.minCellIndex ||
+                  (seg.cellIndex === event.minCellIndex && seg.startPercent < event.minStartPercent)
+                ) {
                   event.minStartPercent = seg.startPercent
                 }
-                if (seg.cellIndex > event.maxCellIndex ||
-                    (seg.cellIndex === event.maxCellIndex && seg.endPercent > event.maxEndPercent)) {
+                if (
+                  seg.cellIndex > event.maxCellIndex ||
+                  (seg.cellIndex === event.maxCellIndex && seg.endPercent > event.maxEndPercent)
+                ) {
                   event.maxEndPercent = seg.endPercent
                 }
               }
@@ -531,19 +540,23 @@ export default function EventCalendar({ events }: EventCalendarProps) {
 
             // Find the overall span
             const allOverflowEvents = Array.from(overflowEventMap.values())
-            const overallMinCell = Math.min(...allOverflowEvents.map(e => e.minCellIndex))
-            const overallMaxCell = Math.max(...allOverflowEvents.map(e => e.maxCellIndex))
+            const overallMinCell = Math.min(...allOverflowEvents.map((e) => e.minCellIndex))
+            const overallMaxCell = Math.max(...allOverflowEvents.map((e) => e.maxCellIndex))
 
             // Only render from the starting cell of the overall overflow span
             if (cellIndex === overallMinCell) {
               shouldRenderOverflow = true
 
               // Find start and end percentages
-              const eventsInMinCell = allOverflowEvents.filter(e => e.minCellIndex === overallMinCell)
-              const startPercent = Math.min(...eventsInMinCell.map(e => e.minStartPercent))
+              const eventsInMinCell = allOverflowEvents.filter(
+                (e) => e.minCellIndex === overallMinCell,
+              )
+              const startPercent = Math.min(...eventsInMinCell.map((e) => e.minStartPercent))
 
-              const eventsInMaxCell = allOverflowEvents.filter(e => e.maxCellIndex === overallMaxCell)
-              const endPercent = Math.max(...eventsInMaxCell.map(e => e.maxEndPercent))
+              const eventsInMaxCell = allOverflowEvents.filter(
+                (e) => e.maxCellIndex === overallMaxCell,
+              )
+              const endPercent = Math.max(...eventsInMaxCell.map((e) => e.maxEndPercent))
 
               // Create overflow runs similar to regular event runs
               let currentCell = overallMinCell
@@ -553,12 +566,12 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                 const runEnd = Math.min(rowEnd, overallMaxCell)
 
                 // Get segments for this run
-                const runSegments = overflowSegments.filter(seg =>
-                  seg.cellIndex >= runStart && seg.cellIndex <= runEnd
+                const runSegments = overflowSegments.filter(
+                  (seg) => seg.cellIndex >= runStart && seg.cellIndex <= runEnd,
                 )
 
                 overflowRuns.push({
-                  eventId: 'overflow-indicator',
+                  eventId: "overflow-indicator",
                   eventName: `+${allOverflowEvents.length}`,
                   segments: runSegments,
                   startCellIndex: runStart,
@@ -566,8 +579,8 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                   startPercent: runStart === overallMinCell ? startPercent : 0,
                   endPercent: runEnd === overallMaxCell ? endPercent : 100,
                   verticalPosition: 67.5, // Row 3 position
-                  color: overflowSegments[0]?.color || 'bg-gray-500',
-                  row: 3
+                  color: overflowSegments[0]?.color || "bg-gray-500",
+                  row: 3,
                 })
 
                 if (runEnd < overallMaxCell) {
@@ -621,25 +634,30 @@ export default function EventCalendar({ events }: EventCalendarProps) {
                 })}
 
               {/* Render overflow indicator if this is the starting cell */}
-              {shouldRenderOverflow && overflowRuns.length > 0 && (() => {
-                // Collect unique overflow events for the hover card
-                const uniqueOverflowEvents = new Map<string, { eventId: string; eventName: string }>()
-                overflowSegments.forEach(seg => {
-                  if (!uniqueOverflowEvents.has(seg.eventId)) {
-                    uniqueOverflowEvents.set(seg.eventId, {
-                      eventId: seg.eventId,
-                      eventName: seg.eventName
-                    })
-                  }
-                })
+              {shouldRenderOverflow &&
+                overflowRuns.length > 0 &&
+                (() => {
+                  // Collect unique overflow events for the hover card
+                  const uniqueOverflowEvents = new Map<
+                    string,
+                    { eventId: string; eventName: string }
+                  >()
+                  overflowSegments.forEach((seg) => {
+                    if (!uniqueOverflowEvents.has(seg.eventId)) {
+                      uniqueOverflowEvents.set(seg.eventId, {
+                        eventId: seg.eventId,
+                        eventName: seg.eventName,
+                      })
+                    }
+                  })
 
-                return (
-                  <OverflowIndicator
-                    runs={overflowRuns}
-                    overflowEvents={Array.from(uniqueOverflowEvents.values())}
-                  />
-                )
-              })()}
+                  return (
+                    <OverflowIndicator
+                      runs={overflowRuns}
+                      overflowEvents={Array.from(uniqueOverflowEvents.values())}
+                    />
+                  )
+                })()}
             </div>
           )
         })}
