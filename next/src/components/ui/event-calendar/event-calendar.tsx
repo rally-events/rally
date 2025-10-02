@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../button"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../hover-card"
+import { useRouter } from "next/navigation"
 
 interface EventCalendarProps {
   events: EventSearchInfo
@@ -13,6 +14,19 @@ interface EventBarSegment {
   eventId: string
   eventName: string
   cellIndex: number
+  startPercent: number
+  endPercent: number
+  verticalPosition: number
+  color: string
+  row: number
+}
+
+interface EventRun {
+  eventId: string
+  eventName: string
+  segments: EventBarSegment[]
+  startCellIndex: number
+  endCellIndex: number
   startPercent: number
   endPercent: number
   verticalPosition: number
@@ -35,6 +49,89 @@ function timeToPosition(timePercent: number): number {
 // Helper: Get date at start of day
 function getDateOnly(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+// Component for single event run with hover card
+function EventRunBar({ run, href }: { run: EventRun; href: string }) {
+  const cellsSpanned = run.endCellIndex - run.startCellIndex + 1
+  const router = useRouter()
+  // Width calculation based on cells spanned and time percentages
+  const minWidth = Math.min(100 - run.startPercent, 40)
+  const widthPercent = Math.max(
+    (cellsSpanned - 1) * 100 + (run.endPercent - run.startPercent),
+    minWidth,
+  )
+  const gapsSpanned = cellsSpanned - 1
+
+  return (
+    <HoverCard openDelay={200}>
+      <HoverCardTrigger asChild>
+        <div
+          className={`pointer-events-auto absolute ${run.color} z-10 cursor-pointer truncate rounded px-1 text-xs text-white transition-opacity hover:opacity-90`}
+          onClick={() => router.push(`/dashboard/event/${href}/edit`)}
+          style={{
+            top: `${run.verticalPosition}%`,
+            left: `${run.startPercent}%`,
+            width: `calc(${widthPercent}% + ${gapsSpanned} * 0.25rem)`,
+            height: "30%",
+            maxHeight: "24px",
+          }}
+        >
+          {run.eventName}
+        </div>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-auto">
+        <div className="text-sm font-medium">{run.eventName}</div>
+      </HoverCardContent>
+    </HoverCard>
+  )
+}
+
+// Component for events that span multiple rows (wrap around weekends)
+// This component renders multiple triggers that share hover state
+function MultiRunEvent({ runs, href }: { runs: EventRun[]; href: string }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+
+  console.log(runs)
+  return (
+    <>
+      {runs.map((run, index) => {
+        const cellsSpanned = run.endCellIndex - run.startCellIndex + 1
+        const widthPercent = (cellsSpanned - 1) * 100 + (run.endPercent - run.startPercent)
+        const gapsSpanned = cellsSpanned - 1
+
+        // Determine border radius based on position
+        const isFirstRun = index === 0
+        const isLastRun = index === runs.length - 1
+
+        return (
+          <HoverCard key={`${run.eventId}-run-${index}`} open={isOpen} onOpenChange={setIsOpen}>
+            <HoverCardTrigger asChild>
+              <div
+                className={`pointer-events-auto absolute ${run.color} ${isFirstRun && !isLastRun ? "rounded-l" : ""} ${!isFirstRun && isLastRun ? "rounded-r" : ""} ${!isFirstRun && !isLastRun ? "rounded-none" : ""} ${isFirstRun && isLastRun ? "rounded" : ""} z-10 cursor-pointer truncate px-1 text-xs text-white transition-opacity hover:opacity-90`}
+                onClick={() => router.push(`/dashboard/event/${href}/edit`)}
+                style={{
+                  top: `${run.verticalPosition}%`,
+                  left: `${run.startPercent}%`,
+                  width: `calc(${widthPercent}% + ${gapsSpanned} * 0.25rem)`,
+                  height: "30%",
+                  maxHeight: "24px",
+                }}
+                onMouseEnter={() => setIsOpen(true)}
+                onMouseLeave={() => setIsOpen(false)}
+              >
+                {run.eventName}
+              </div>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-auto">
+              <div className="text-sm font-medium">{run.eventName}</div>
+            </HoverCardContent>
+          </HoverCard>
+        )
+      })}
+    </>
+  )
 }
 
 export default function EventCalendar({ events }: EventCalendarProps) {
@@ -88,8 +185,8 @@ export default function EventCalendar({ events }: EventCalendarProps) {
     setCurrentDate(new Date())
   }
 
-  // Process events into bar segments and group by event
-  const { eventSegments, groupedEvents } = useMemo(() => {
+  // Process events into bar segments, group by event, and create runs
+  const { eventSegments, groupedEvents, eventRuns } = useMemo(() => {
     const segments: EventBarSegment[] = []
 
     // Color palette for events
@@ -251,7 +348,66 @@ export default function EventCalendar({ events }: EventCalendarProps) {
       grouped.get(segment.eventId)!.push(segment)
     })
 
-    return { eventSegments: segments, groupedEvents: grouped }
+    // Create runs: group consecutive segments into continuous bars
+    const runs: EventRun[] = []
+    grouped.forEach((eventSegments, eventId) => {
+      let currentRun: EventBarSegment[] = []
+
+      eventSegments.forEach((segment, index) => {
+        if (currentRun.length === 0) {
+          currentRun.push(segment)
+        } else {
+          const lastSegment = currentRun[currentRun.length - 1]
+          // Check if this segment continues from the last one
+          // It continues if it's the next cell index AND not wrapping to a new row
+          const isConsecutive = segment.cellIndex === lastSegment.cellIndex + 1
+          const wrapsToNewRow = lastSegment.cellIndex % 7 === 6 && segment.cellIndex % 7 === 0
+
+          if (isConsecutive && !wrapsToNewRow) {
+            currentRun.push(segment)
+          } else {
+            // Save the current run and start a new one
+            if (currentRun.length > 0) {
+              const firstSeg = currentRun[0]
+              const lastSeg = currentRun[currentRun.length - 1]
+              runs.push({
+                eventId,
+                eventName: firstSeg.eventName,
+                segments: currentRun,
+                startCellIndex: firstSeg.cellIndex,
+                endCellIndex: lastSeg.cellIndex,
+                startPercent: firstSeg.startPercent,
+                endPercent: lastSeg.endPercent,
+                verticalPosition: firstSeg.verticalPosition,
+                color: firstSeg.color,
+                row: firstSeg.row,
+              })
+            }
+            currentRun = [segment]
+          }
+        }
+      })
+
+      // Don't forget the last run
+      if (currentRun.length > 0) {
+        const firstSeg = currentRun[0]
+        const lastSeg = currentRun[currentRun.length - 1]
+        runs.push({
+          eventId,
+          eventName: firstSeg.eventName,
+          segments: currentRun,
+          startCellIndex: firstSeg.cellIndex,
+          endCellIndex: lastSeg.cellIndex,
+          startPercent: firstSeg.startPercent,
+          endPercent: lastSeg.endPercent,
+          verticalPosition: firstSeg.verticalPosition,
+          color: firstSeg.color,
+          row: firstSeg.row,
+        })
+      }
+    })
+
+    return { eventSegments: segments, groupedEvents: grouped, eventRuns: runs }
   }, [events, year, month, daysInMonth, startingDayOfWeek])
 
   return (
@@ -276,141 +432,98 @@ export default function EventCalendar({ events }: EventCalendarProps) {
         ))}
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1">
-        {/* Render calendar cells */}
-        {days.map((day, i) => {
+        {/* Render calendar cells with events as children */}
+        {days.map((day, cellIndex) => {
           const isToday = isCurrentMonth && day === currentDay
           const isEmptyCell = day === null
 
+          // Find runs that start in this cell
+          const runsStartingHere = eventRuns.filter((run) => run.startCellIndex === cellIndex)
+
+          // Group runs by event ID for multi-run handling
+          const runsByEvent = new Map<string, EventRun[]>()
+          eventRuns.forEach((run) => {
+            if (!runsByEvent.has(run.eventId)) {
+              runsByEvent.set(run.eventId, [])
+            }
+            runsByEvent.get(run.eventId)!.push(run)
+          })
+
           return (
             <div
-              key={i}
-              className={`relative flex h-20 flex-col items-start overflow-hidden rounded p-1.5 ${
+              key={cellIndex}
+              className={`relative flex h-20 flex-col items-start overflow-visible rounded p-1.5 ${
                 isEmptyCell ? "" : isToday ? "bg-blue-500 text-white" : "bg-surface"
               }`}
             >
               {day !== null && <span className="relative z-10 text-sm font-medium">{day}</span>}
-            </div>
-          )
-        })}
 
-        {/* Render events as unified components spanning across cells */}
-        {Array.from(groupedEvents.entries()).map(([eventId, segments]) => {
-          const firstSegment = segments[0]
-          const visibleSegments = segments.filter((seg) => seg.row <= 2)
+              {/* Render events that start in this cell */}
+              {runsStartingHere
+                .filter((run) => run.row <= 2) // Only show first 2 rows
+                .map((run) => {
+                  const allRunsForEvent = runsByEvent.get(run.eventId)!
+                  const visibleRuns = allRunsForEvent.filter((r) => r.row <= 2)
 
-          if (visibleSegments.length === 0) return null
+                  // If this event has multiple runs (wraps), use MultiRunEvent
+                  if (visibleRuns.length > 1) {
+                    return <MultiRunEvent key={run.eventId} runs={visibleRuns} href={run.eventId} />
+                  }
 
-          return (
-            <HoverCard key={eventId} openDelay={200}>
-              <HoverCardTrigger asChild>
-                <div className="pointer-events-none absolute inset-0">
-                  {visibleSegments.map((segment, segIndex) => {
-                    const width = Math.max(40, segment.endPercent - segment.startPercent)
-                    const isEndOfRow = segment.cellIndex % 7 === 6
-                    const isStartOfRow = segment.cellIndex % 7 === 0
+                  // Single run event
+                  return <EventRunBar key={run.eventId} run={run} href={run.eventId} />
+                })}
 
-                    // Check if this segment continues to the next cell
-                    const continuesRight =
-                      segIndex < visibleSegments.length - 1 &&
-                      visibleSegments[segIndex + 1].cellIndex === segment.cellIndex + 1
-                    const continuesLeft =
-                      segIndex > 0 &&
-                      visibleSegments[segIndex - 1].cellIndex === segment.cellIndex - 1
+              {/* Render overflow indicator if needed */}
+              {(() => {
+                const cellSegments = eventSegments.filter((seg) => seg.cellIndex === cellIndex)
+                const maxRow = Math.max(0, ...cellSegments.map((seg) => seg.row))
+                const hasOverflow = maxRow > 2
 
-                    // Determine border radius
-                    let roundedClass = "rounded"
-                    if (continuesRight && !isEndOfRow) {
-                      roundedClass = continuesLeft && !isStartOfRow ? "rounded-none" : "rounded-l"
-                    } else if (continuesLeft && !isStartOfRow) {
-                      roundedClass = "rounded-r"
-                    }
+                if (!hasOverflow) return null
 
-                    // Calculate absolute position
-                    const row = Math.floor(segment.cellIndex / 7)
-                    const col = segment.cellIndex % 7
+                const overflowSegments = cellSegments.filter((seg) => seg.row > 2)
+                const overflowCount = new Set(overflowSegments.map((seg) => seg.eventId)).size
 
-                    // Cell dimensions: h-20 = 80px, gap-1 = 4px
-                    const cellHeight = 80
-                    const cellGap = 4
-                    const totalCellHeight = cellHeight + cellGap
+                // Get unique overflow events
+                const uniqueOverflowEvents = Array.from(
+                  new Map(overflowSegments.map((seg) => [seg.eventId, seg])).values(),
+                )
 
-                    return (
+                const overflowStart = Math.min(...overflowSegments.map((seg) => seg.startPercent))
+                const overflowEnd = Math.max(...overflowSegments.map((seg) => seg.endPercent))
+                const firstOverflowSegment = overflowSegments[0]
+
+                return (
+                  <HoverCard openDelay={200}>
+                    <HoverCardTrigger asChild>
                       <div
-                        key={`${segment.eventId}-${segIndex}`}
-                        className={`pointer-events-auto absolute ${segment.color} ${roundedClass} truncate px-1 text-xs text-white transition-opacity hover:opacity-90`}
+                        className={`pointer-events-auto absolute ${firstOverflowSegment.color} z-10 flex cursor-pointer items-center justify-center rounded px-1 text-xs font-semibold text-white transition-opacity hover:opacity-60`}
                         style={{
-                          // Position relative to the grid
-                          top: `calc(${row} * (5rem + 0.25rem) + ${segment.verticalPosition}%)`,
-                          left: `calc(${col} * (100% / 7) + ${col} * 0.25rem + ${segment.startPercent}%)`,
-                          width: `calc((100% / 7) * ${width / 100} - ${cellGap * (width / 100)}px)`,
+                          top: "67.5%",
+                          left: `${overflowStart}%`,
+                          width: `${Math.max(40, overflowEnd - overflowStart)}%`,
                           height: "30%",
-                          maxHeight: `${cellHeight * 0.3}px`,
+                          maxHeight: "24px",
                         }}
                       >
-                        {segment.eventName}
+                        +{overflowCount}
                       </div>
-                    )
-                  })}
-                </div>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-auto">
-                <div className="text-sm font-medium">{firstSegment.eventName}</div>
-              </HoverCardContent>
-            </HoverCard>
-          )
-        })}
-
-        {/* Render overflow indicators */}
-        {days.map((day, i) => {
-          const cellSegments = eventSegments.filter((seg) => seg.cellIndex === i)
-          const maxRow = Math.max(0, ...cellSegments.map((seg) => seg.row))
-          const hasOverflow = maxRow > 2
-
-          if (!hasOverflow) return null
-
-          const overflowSegments = cellSegments.filter((seg) => seg.row > 2)
-          const overflowCount = new Set(overflowSegments.map((seg) => seg.eventId)).size
-
-          // Get unique overflow events
-          const uniqueOverflowEvents = Array.from(
-            new Map(overflowSegments.map((seg) => [seg.eventId, seg])).values(),
-          )
-
-          const overflowStart = Math.min(...overflowSegments.map((seg) => seg.startPercent))
-          const overflowEnd = Math.max(...overflowSegments.map((seg) => seg.endPercent))
-          const firstOverflowSegment = overflowSegments[0]
-
-          const row = Math.floor(i / 7)
-          const col = i % 7
-          const cellGap = 4
-
-          return (
-            <HoverCard key={`overflow-${i}`} openDelay={200}>
-              <HoverCardTrigger asChild>
-                <div
-                  className={`pointer-events-auto absolute ${firstOverflowSegment.color} flex items-center justify-center rounded px-1 text-xs font-semibold text-white transition-opacity hover:opacity-60`}
-                  style={{
-                    top: `calc(${row} * (5rem + 0.25rem) + 67.5%)`,
-                    left: `calc(${col} * (100% / 7) + ${col} * 0.25rem + ${overflowStart}%)`,
-                    width: `calc((100% / 7) * ${Math.max(40, overflowEnd - overflowStart) / 100} - ${cellGap * (Math.max(40, overflowEnd - overflowStart) / 100)}px)`,
-                    height: "30%",
-                    maxHeight: "24px",
-                  }}
-                >
-                  +{overflowCount}
-                </div>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-auto">
-                <div className="flex flex-col gap-1">
-                  <div className="text-sm font-medium">Hidden Events:</div>
-                  {uniqueOverflowEvents.map((seg) => (
-                    <div key={seg.eventId} className="text-sm">
-                      • {seg.eventName}
-                    </div>
-                  ))}
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-auto">
+                      <div className="flex flex-col gap-1">
+                        <div className="text-sm font-medium">Hidden Events:</div>
+                        {uniqueOverflowEvents.map((seg) => (
+                          <div key={seg.eventId} className="text-sm">
+                            • {seg.eventName}
+                          </div>
+                        ))}
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                )
+              })()}
+            </div>
           )
         })}
       </div>
