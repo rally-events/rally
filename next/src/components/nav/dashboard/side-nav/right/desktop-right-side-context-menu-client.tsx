@@ -11,7 +11,7 @@ export default function DesktopRightSideContextMenuClient({
 }) {
   const path = usePathname()
   return (
-    <div className="flex flex-col gap-2">
+    <div className="sticky top-20 flex flex-col gap-2">
       <Card>
         <CardHeader>
           <CardTitle>Your organization: {user.organization?.name}</CardTitle>

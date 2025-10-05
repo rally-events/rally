@@ -22,7 +22,13 @@ import { useState, useEffect } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Settings2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
 type EventSearchResult = RouterOutputs["event"]["searchEvents"]
@@ -213,6 +219,28 @@ const createColumns = (
         return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
       },
     },
+    {
+      id: "actions",
+      header: "",
+      size: 0,
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>Edit event</DropdownMenuItem>
+            <DropdownMenuItem>View details</DropdownMenuItem>
+            <DropdownMenuItem>Delete event</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      meta: {
+        cellClassName: "w-min px-2",
+      },
+    },
   ]
 }
 
@@ -231,6 +259,7 @@ const defaultColumnVisibility: VisibilityState = {
   isTicketed: false,
   createdAt: true,
   updatedAt: true,
+  actions: true,
 }
 
 export default function HostEventsDataTable({
@@ -324,6 +353,9 @@ export default function HostEventsDataTable({
                       <div className="space-y-2">
                         {table.getAllColumns().map((column) => {
                           const columnId = column.id
+                          // Skip the actions column from visibility settings
+                          if (columnId === "actions") return null
+
                           const header =
                             typeof column.columnDef.header === "string"
                               ? column.columnDef.header

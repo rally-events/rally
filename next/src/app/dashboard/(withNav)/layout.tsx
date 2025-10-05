@@ -19,7 +19,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
 
       {/* pt-20 because of the top nav height + 4 bottom margin in tailwind units */}
       {/* pl-76 because of the side nav width + 4 left margin in tailwind units */}
-      <main className="flex-grow pt-20 pl-76">{children}</main>
+      <main className="flex-grow pt-20 pb-16 pl-76">{children}</main>
       <header className="relative z-10 flex-shrink-0 px-4 pt-20 max-md:hidden">
         <Suspense fallback={<DesktopRightSideContextMenuSkeleton />}>
           <DesktopRightSideContextMenu />
