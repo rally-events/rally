@@ -25,6 +25,7 @@ export type EventEditorContextType = {
   generateUploadUrl: ReturnType<typeof api.media.generateUploadUrl.useMutation>
   confirmUpload: ReturnType<typeof api.media.confirmUpload.useMutation>
   deleteMedia: ReturnType<typeof api.media.deleteMedia.useMutation>
+  isDirty: boolean
 }
 
 export type EventEditSchema = z.infer<typeof eventEditOptionalSchema>
@@ -61,8 +62,6 @@ export default function EventEditorProvider({
       // Skip if no field name (initial call)
       if (!name) return
 
-      hasUnsavedChangesRef.current = true
-
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
@@ -86,8 +85,9 @@ export default function EventEditorProvider({
           })
 
           form.reset(formData, { keepValues: true })
-          hasUnsavedChangesRef.current = false
+
           setSaveStatus("saved")
+          setLastUpdated(new Date())
         } catch (error) {
           console.error("[EventEditor] Autosave failed", error)
           setSaveStatus("error")
@@ -107,7 +107,7 @@ export default function EventEditorProvider({
   // Browser warning for unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChangesRef.current) {
+      if (form.formState.isDirty) {
         e.preventDefault()
         return "You have unsaved changes. Are you sure you want to leave?"
       }
@@ -134,6 +134,7 @@ export default function EventEditorProvider({
         generateUploadUrl,
         confirmUpload,
         deleteMedia,
+        isDirty: form.formState.isDirty,
       }}
     >
       <FormProvider {...form}>{children}</FormProvider>

@@ -3,14 +3,32 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Separator } from "@/components/ui/separator"
 import { InfoIcon } from "lucide-react"
 import React from "react"
+import { useEventEditor } from "../event-editor-provider"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function EventEditorRight() {
+  const { isDirty } = useEventEditor()
   return (
     <>
       <Button>Publish</Button>
       <Separator />
       <Button variant="outline">Preview</Button>
-      <Button variant="outline">Save</Button>
+      {!isDirty ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Button className="w-full" variant="outline" disabled={true}>
+                Save
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>You have no unsaved changes.</TooltipContent>
+        </Tooltip>
+      ) : (
+        <Button variant="outline" disabled={false}>
+          Save
+        </Button>
+      )}
       <Separator />
       <Card size="sm">
         <CardHeader>

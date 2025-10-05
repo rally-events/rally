@@ -1,3 +1,4 @@
+import HostEventsList from "@/components/host-events/host-events-list"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import EventCalendar from "@/components/ui/event-calendar/event-calendar"
 import { api } from "@/lib/trpc/server"
@@ -24,7 +25,7 @@ export default async function page() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Events are the main way to showcase your organization and reach your audience.</p>
+              <p>We will be showing stats and quick actions and stuff here.</p>
             </CardContent>
           </Card>
         </section>
@@ -36,6 +37,9 @@ export default async function page() {
           </Card>
         </section>
       </div>
+      <section>
+        <HostEventsList user={user} />
+      </section>
     </div>
   )
 }

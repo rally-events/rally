@@ -1,4 +1,4 @@
-import { db, eq, eventsMediaTable, eventsTable, inArray } from "@rally/db"
+import { db, eq, eventsMediaTable, eventsTable, inArray, and, gte, lte, sql, SQL } from "@rally/db"
 import { TRPCContext } from "../context"
 import z from "zod"
 import { searchEventsSchema } from "@rally/schemas"
@@ -9,9 +9,52 @@ export default async function searchEvents(
   ctx: TRPCContext,
   input: z.infer<typeof searchEventsSchema>,
 ) {
-  const { organizationId } = input
+  const {
+    organizationId,
+    startDateRange,
+    endDateRange,
+    format,
+    expectedAttendeesMin,
+    expectedAttendeesMax,
+    eventNameQuery,
+  } = input
+
+  // Build conditional filters
+  const filters: SQL[] = []
+
+  if (organizationId) {
+    filters.push(eq(eventsTable.organizationId, organizationId))
+  }
+
+  // Date range filters
+  if (startDateRange) {
+    filters.push(gte(eventsTable.startDatetime, startDateRange))
+  }
+  if (endDateRange) {
+    filters.push(lte(eventsTable.endDatetime, endDateRange))
+  }
+
+  // Format filter
+  if (format && format.length > 0) {
+    filters.push(inArray(eventsTable.format, format))
+  }
+
+  // Expected attendees filters
+  if (expectedAttendeesMin !== undefined) {
+    filters.push(gte(eventsTable.expectedAttendeesMin, expectedAttendeesMin))
+  }
+  if (expectedAttendeesMax !== undefined) {
+    filters.push(lte(eventsTable.expectedAttendeesMax, expectedAttendeesMax))
+  }
+
+  // Event name fuzzy search filter using pg_trgm
+  if (eventNameQuery) {
+    // Using pg_trgm similarity operator (%) for fuzzy matching with typo tolerance
+    filters.push(sql`${eventsTable.name} % ${eventNameQuery}`)
+  }
+
   const events = (await db.query.eventsTable.findMany({
-    where: eq(eventsTable.organizationId, organizationId),
+    where: and(...filters),
     with: {
       organization: true,
     },

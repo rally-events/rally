@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { OverflowIndicator } from "./overflow-indicator"
 
 // TODO: clean this mf mess up
+// TODO: make this fetch on client and re-fetch as you move through months.
 
 interface EventCalendarProps {
   events: EventSearchInfo

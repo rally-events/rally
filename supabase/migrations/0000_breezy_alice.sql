@@ -1,3 +1,9 @@
+-- ENABLE EXTENSIONS FIRST
+create extension pg_trgm
+with
+  schema extensions;
+
+
 CREATE TABLE "email_otp" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid,
