@@ -19,78 +19,8 @@
     {
       "idx": 2,
       "version": "7",
-      "when": 1759204233807,
-      "tag": "0002_brown_miracleman",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1759220894634,
-      "tag": "0003_condemned_nextwave",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1759246064326,
-      "tag": "0004_bouncy_romulus",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1759259829583,
-      "tag": "0005_crazy_wrecking_crew",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1759260007611,
-      "tag": "0006_new_wallow",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1759260453926,
-      "tag": "0007_gigantic_darkhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1759344087815,
-      "tag": "0008_flawless_human_fly",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1759346473871,
-      "tag": "0009_white_kabuki",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1759348196730,
-      "tag": "0010_messy_impossible_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1759348239240,
-      "tag": "0011_common_gunslinger",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1759636834415,
-      "tag": "0012_powerful_shooting_star",
+      "when": 1759652658082,
+      "tag": "0002_lush_stark_industries",
       "breakpoints": true
     }
   ]

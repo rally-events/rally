@@ -53,10 +53,14 @@ export default function HostEventListFilters({
     setOpen(shouldOpen)
   }
 
-  const formatOptions: Array<{ value: "in-person" | "virtual" | "hybrid"; label: string }> = [
+  const formatOptions: Array<{
+    value: "in-person" | "virtual" | "hybrid" | "unspecified"
+    label: string
+  }> = [
     { value: "in-person", label: "In-Person" },
     { value: "virtual", label: "Virtual" },
     { value: "hybrid", label: "Hybrid" },
+    { value: "unspecified", label: "Unspecified" },
   ]
 
   return (

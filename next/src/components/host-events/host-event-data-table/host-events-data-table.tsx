@@ -23,16 +23,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import HostDataTableDropdown from "./host-data-table-dropdown"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
 type EventSearchResult = RouterOutputs["event"]["searchEvents"]
-type EventRow = EventSearchResult[number]
+export type EventRow = EventSearchResult[number]
 
 interface HostEventsDataTableProps {
   data: EventSearchResult
@@ -219,28 +214,6 @@ const createColumns = (
         return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
       },
     },
-    {
-      id: "actions",
-      header: "",
-      size: 0,
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit event</DropdownMenuItem>
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Delete event</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-      meta: {
-        cellClassName: "w-min px-2",
-      },
-    },
   ]
 }
 
@@ -298,7 +271,7 @@ export default function HostEventsDataTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 <TableHead className="w-12">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                  <Button variant="ghost" size="iconSm" disabled>
                     <Settings2 className="h-4 w-4" />
                   </Button>
                 </TableHead>
@@ -309,6 +282,7 @@ export default function HostEventsDataTable({
                       : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
+                <TableHead />
               </TableRow>
             ))}
           </TableHeader>
@@ -338,8 +312,8 @@ export default function HostEventsDataTable({
               <TableHead className="w-12">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Settings2 className="h-4 w-4" />
+                    <Button variant="ghost" size="iconSm">
+                      <Settings2 />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent align="start" className="w-56">
@@ -397,6 +371,7 @@ export default function HostEventsDataTable({
                     : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
+              <TableHead className="w-12" />
             </TableRow>
           ))}
         </TableHeader>
@@ -410,6 +385,9 @@ export default function HostEventsDataTable({
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
+                <TableCell className="w-12">
+                  <HostDataTableDropdown row={row} />
+                </TableCell>
               </TableRow>
             ))
           ) : (

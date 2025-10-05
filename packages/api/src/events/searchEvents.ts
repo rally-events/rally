@@ -51,7 +51,21 @@ export default async function searchEvents(
 
   // Format filter
   if (format && format.length > 0) {
-    filters.push(inArray(eventsTable.format, format))
+    const includesUnspecified = format.includes("unspecified")
+    const specifiedFormats = format.filter((f) => f !== "unspecified")
+
+    if (includesUnspecified && specifiedFormats.length > 0) {
+      // Include both specified formats AND null/undefined
+      filters.push(
+        sql`(${inArray(eventsTable.format, specifiedFormats)} OR ${eventsTable.format} IS NULL)`
+      )
+    } else if (includesUnspecified) {
+      // Only unspecified - show null/undefined only
+      filters.push(sql`${eventsTable.format} IS NULL`)
+    } else {
+      // Only specified formats
+      filters.push(inArray(eventsTable.format, specifiedFormats))
+    }
   }
 
   // Expected attendees filters

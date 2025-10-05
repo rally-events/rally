@@ -9,12 +9,17 @@ import HostEventListFilters from "./host-event-list-filters"
 import z from "zod"
 import { searchEventsSchema } from "@rally/schemas"
 import { api } from "@/lib/trpc/client"
-import HostEventsDataTable from "./host-events-data-table"
+import HostEventsDataTable from "./host-event-data-table/host-events-data-table"
 
 export const defaultFilters = {
   startDateRange: undefined,
   endDateRange: undefined,
-  format: ["in-person", "virtual", "hybrid"] as ("in-person" | "virtual" | "hybrid")[],
+  format: ["in-person", "virtual", "hybrid", "unspecified"] as (
+    | "in-person"
+    | "virtual"
+    | "hybrid"
+    | "unspecified"
+  )[],
   eventNameQuery: "",
   expectedAttendeesMin: undefined,
   expectedAttendeesMax: undefined,
@@ -22,7 +27,7 @@ export const defaultFilters = {
   sortOrder: undefined,
 }
 
-const LIMIT = 24
+const LIMIT = 12
 
 export default function HostEventsList({ user }: { user: UserInfo }) {
   const [currentView, setCurrentView] = useState<"grid" | "list">("grid")
