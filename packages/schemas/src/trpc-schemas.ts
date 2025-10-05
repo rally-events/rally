@@ -33,4 +33,18 @@ export const searchEventsSchema = z.object({
     .max(999999999999)
     .optional() as z.ZodOptional<z.ZodNumber>,
   eventNameQuery: z.string().optional(),
+  sortBy: z
+    .enum([
+      "name",
+      "startDatetime",
+      "endDatetime",
+      "duration",
+      "expectedAttendeesMin",
+      "expectedAttendeesMax",
+      "isTicketed",
+      "createdAt",
+      "updatedAt",
+    ])
+    .optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 })

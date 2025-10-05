@@ -18,11 +18,11 @@ import {
 import { format, formatDuration, intervalToDuration } from "date-fns"
 import type { AppRouter } from "@rally/api"
 import type { inferRouterOutputs } from "@trpc/server"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Settings2 } from "lucide-react"
+import { Settings2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
 type EventSearchResult = RouterOutputs["event"]["searchEvents"]
@@ -31,130 +31,190 @@ type EventRow = EventSearchResult[number]
 interface HostEventsDataTableProps {
   data: EventSearchResult
   isLoading: boolean
+  sortBy?: string
+  sortOrder?: "asc" | "desc"
+  onSortChange: (sortBy?: string, sortOrder?: "asc" | "desc") => void
 }
 
-const columns: ColumnDef<EventRow>[] = [
-  {
-    accessorKey: "name",
-    header: "Event Name",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
-  },
-  {
-    accessorKey: "streetAddress",
-    header: "Street Address",
-    cell: ({ row }) => {
-      const address = row.getValue("streetAddress") as string | null
-      return address || "—"
-    },
-  },
-  {
-    accessorKey: "city",
-    header: "City",
-    cell: ({ row }) => {
-      const city = row.getValue("city") as string | null
-      return city || "—"
-    },
-  },
-  {
-    accessorKey: "state",
-    header: "State",
-    cell: ({ row }) => {
-      const state = row.getValue("state") as string | null
-      return state || "—"
-    },
-  },
-  {
-    accessorKey: "startDatetime",
-    header: "Start Time",
-    cell: ({ row }) => {
-      const date = row.getValue("startDatetime") as Date | null
-      return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
-    },
-  },
-  {
-    accessorKey: "endDatetime",
-    header: "End Time",
-    cell: ({ row }) => {
-      const date = row.getValue("endDatetime") as Date | null
-      return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
-    },
-  },
-  {
-    id: "duration",
-    header: "Duration",
-    cell: ({ row }) => {
-      const start = row.getValue("startDatetime") as Date | null
-      const end = row.getValue("endDatetime") as Date | null
-      if (!start || !end) return "—"
+// Sortable columns
+const sortableColumns = new Set([
+  "name",
+  "startDatetime",
+  "endDatetime",
+  "duration",
+  "expectedAttendeesMin",
+  "expectedAttendeesMax",
+  "isTicketed",
+  "createdAt",
+  "updatedAt",
+])
 
-      const duration = intervalToDuration({
-        start: new Date(start),
-        end: new Date(end),
-      })
+const createColumns = (
+  sortBy?: string,
+  sortOrder?: "asc" | "desc",
+  onSortChange?: (sortBy?: string, sortOrder?: "asc" | "desc") => void,
+): ColumnDef<EventRow>[] => {
+  const handleHeaderClick = (columnId: string) => {
+    if (!sortableColumns.has(columnId) || !onSortChange) return
 
-      return formatDuration(duration, {
-        format: ["days", "hours", "minutes"],
-        delimiter: ", ",
-      })
+    if (sortBy === columnId) {
+      // Cycle through: asc -> desc -> none
+      if (sortOrder === "asc") {
+        onSortChange(columnId, "desc")
+      } else if (sortOrder === "desc") {
+        onSortChange(undefined, undefined)
+      }
+    } else {
+      // Start with ascending
+      onSortChange(columnId, "asc")
+    }
+  }
+
+  const getSortIcon = (columnId: string) => {
+    if (sortBy !== columnId) return <ArrowUpDown className="ml-2 h-4 w-4" />
+    if (sortOrder === "asc") return <ArrowUp className="ml-2 h-4 w-4" />
+    if (sortOrder === "desc") return <ArrowDown className="ml-2 h-4 w-4" />
+    return <ArrowUpDown className="ml-2 h-4 w-4" />
+  }
+
+  const createHeader = (columnId: string, label: string) => {
+    if (!sortableColumns.has(columnId)) return label
+
+    return ({ column }: any) => (
+      <Button
+        variant="ghost"
+        onClick={() => handleHeaderClick(columnId)}
+        className="data-[state=open]:bg-accent -ml-3 h-8"
+      >
+        {label}
+        {getSortIcon(columnId)}
+      </Button>
+    )
+  }
+
+  return [
+    {
+      accessorKey: "name",
+      header: createHeader("name", "Event Name"),
+      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
     },
-  },
-  {
-    accessorKey: "expectedAttendeesMin",
-    header: "Min Attendees",
-    cell: ({ row }) => {
-      const min = row.getValue("expectedAttendeesMin") as number | null
-      return min !== null ? min.toLocaleString() : "—"
+    {
+      accessorKey: "streetAddress",
+      header: createHeader("streetAddress", "Street Address"),
+      cell: ({ row }) => {
+        const address = row.getValue("streetAddress") as string | null
+        return address || "—"
+      },
     },
-  },
-  {
-    accessorKey: "expectedAttendeesMax",
-    header: "Max Attendees",
-    cell: ({ row }) => {
-      const max = row.getValue("expectedAttendeesMax") as number | null
-      return max !== null ? max.toLocaleString() : "—"
+    {
+      accessorKey: "city",
+      header: createHeader("city", "City"),
+      cell: ({ row }) => {
+        const city = row.getValue("city") as string | null
+        return city || "—"
+      },
     },
-  },
-  {
-    accessorKey: "audienceAge",
-    header: "Audience Age",
-    cell: ({ row }) => {
-      const ages = row.getValue("audienceAge") as string[] | null
-      return ages && ages.length > 0 ? ages.join(", ") : "—"
+    {
+      accessorKey: "state",
+      header: createHeader("state", "State"),
+      cell: ({ row }) => {
+        const state = row.getValue("state") as string | null
+        return state || "—"
+      },
     },
-  },
-  {
-    accessorKey: "hasFamousPeople",
-    header: "Has Famous People",
-    cell: ({ row }) => {
-      const hasFamous = row.getValue("hasFamousPeople") as boolean | null
-      return hasFamous ? "Yes" : "No"
+    {
+      accessorKey: "startDatetime",
+      header: createHeader("startDatetime", "Start Time"),
+      cell: ({ row }) => {
+        const date = row.getValue("startDatetime") as Date | null
+        return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
+      },
     },
-  },
-  {
-    accessorKey: "isTicketed",
-    header: "Ticketed",
-    cell: ({ row }) => {
-      const isTicketed = row.getValue("isTicketed") as boolean
-      return isTicketed ? "Yes" : "No"
+    {
+      accessorKey: "endDatetime",
+      header: createHeader("endDatetime", "End Time"),
+      cell: ({ row }) => {
+        const date = row.getValue("endDatetime") as Date | null
+        return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
+      },
     },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created At",
-    cell: ({ row }) => {
-      const date = row.getValue("createdAt") as Date | null
-      return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
+    {
+      id: "duration",
+      header: createHeader("duration", "Duration"),
+      cell: ({ row }) => {
+        const start = row.getValue("startDatetime") as Date | null
+        const end = row.getValue("endDatetime") as Date | null
+        if (!start || !end) return "—"
+
+        const duration = intervalToDuration({
+          start: new Date(start),
+          end: new Date(end),
+        })
+
+        return formatDuration(duration, {
+          format: ["days", "hours", "minutes"],
+          delimiter: ", ",
+        })
+      },
     },
-  },
-  {
-    accessorKey: "updatedAt",
-    header: "Updated At",
-    cell: ({ row }) => {
-      const date = row.getValue("updatedAt") as Date | null
-      return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
+    {
+      accessorKey: "expectedAttendeesMin",
+      header: createHeader("expectedAttendeesMin", "Min Attendees"),
+      cell: ({ row }) => {
+        const min = row.getValue("expectedAttendeesMin") as number | null
+        return min !== null ? min.toLocaleString() : "—"
+      },
     },
-  },
-]
+    {
+      accessorKey: "expectedAttendeesMax",
+      header: createHeader("expectedAttendeesMax", "Max Attendees"),
+      cell: ({ row }) => {
+        const max = row.getValue("expectedAttendeesMax") as number | null
+        return max !== null ? max.toLocaleString() : "—"
+      },
+    },
+    {
+      accessorKey: "audienceAge",
+      header: createHeader("audienceAge", "Audience Age"),
+      cell: ({ row }) => {
+        const ages = row.getValue("audienceAge") as string[] | null
+        return ages && ages.length > 0 ? ages.join(", ") : "—"
+      },
+    },
+    {
+      accessorKey: "hasFamousPeople",
+      header: createHeader("hasFamousPeople", "Has Famous People"),
+      cell: ({ row }) => {
+        const hasFamous = row.getValue("hasFamousPeople") as boolean | null
+        return hasFamous ? "Yes" : "No"
+      },
+    },
+    {
+      accessorKey: "isTicketed",
+      header: createHeader("isTicketed", "Ticketed"),
+      cell: ({ row }) => {
+        const isTicketed = row.getValue("isTicketed") as boolean
+        return isTicketed ? "Yes" : "No"
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: createHeader("createdAt", "Created At"),
+      cell: ({ row }) => {
+        const date = row.getValue("createdAt") as Date | null
+        return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
+      },
+    },
+    {
+      accessorKey: "updatedAt",
+      header: createHeader("updatedAt", "Updated At"),
+      cell: ({ row }) => {
+        const date = row.getValue("updatedAt") as Date | null
+        return date ? format(new Date(date), "MMM d, yyyy h:mm a") : "—"
+      },
+    },
+  ]
+}
 
 const defaultColumnVisibility: VisibilityState = {
   name: true,
@@ -173,8 +233,23 @@ const defaultColumnVisibility: VisibilityState = {
   updatedAt: true,
 }
 
-export default function HostEventsDataTable({ data, isLoading }: HostEventsDataTableProps) {
+export default function HostEventsDataTable({
+  data,
+  isLoading,
+  sortBy,
+  sortOrder,
+  onSortChange,
+}: HostEventsDataTableProps) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility)
+
+  const columns = createColumns(sortBy, sortOrder, onSortChange)
+
+  // Clear sorting when the sorted column is hidden
+  useEffect(() => {
+    if (sortBy && columnVisibility[sortBy] === false) {
+      onSortChange(undefined, undefined)
+    }
+  }, [columnVisibility, sortBy, onSortChange])
 
   const table = useReactTable({
     data: data || [],
@@ -240,9 +315,9 @@ export default function HostEventsDataTable({ data, isLoading }: HostEventsDataT
                   </PopoverTrigger>
                   <PopoverContent align="start" className="w-56">
                     <div className="space-y-2">
-                      <div className="font-medium text-sm">Toggle Columns</div>
+                      <div className="text-sm font-medium">Toggle Columns</div>
                       {table.getVisibleLeafColumns().length >= 7 && (
-                        <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400 p-2 rounded">
+                        <div className="rounded bg-amber-50 p-2 text-xs text-amber-600 dark:bg-amber-950 dark:text-amber-400">
                           Maximum of 7 columns selected
                         </div>
                       )}
@@ -267,9 +342,9 @@ export default function HostEventsDataTable({ data, isLoading }: HostEventsDataT
                               />
                               <label
                                 htmlFor={columnId}
-                                className={`text-sm font-normal leading-none cursor-pointer ${
+                                className={`cursor-pointer text-sm leading-none font-normal ${
                                   isDisabled
-                                    ? "opacity-50 cursor-not-allowed"
+                                    ? "cursor-not-allowed opacity-50"
                                     : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 }`}
                               >

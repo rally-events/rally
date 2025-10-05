@@ -1,4 +1,4 @@
-import { db, eq, eventsMediaTable, eventsTable, inArray, and, gte, lte, sql, SQL } from "@rally/db"
+import { db, eq, eventsMediaTable, eventsTable, inArray, and, gte, lte, sql, SQL, asc, desc } from "@rally/db"
 import { TRPCContext } from "../context"
 import z from "zod"
 import { searchEventsSchema } from "@rally/schemas"
@@ -17,6 +17,8 @@ export default async function searchEvents(
     expectedAttendeesMin,
     expectedAttendeesMax,
     eventNameQuery,
+    sortBy,
+    sortOrder,
   } = input
 
   // Build conditional filters
@@ -53,6 +55,21 @@ export default async function searchEvents(
     filters.push(sql`${eventsTable.name} % ${eventNameQuery}`)
   }
 
+  // Build orderBy clause
+  let orderByClause = undefined
+  if (sortBy && sortOrder) {
+    // Duration is a computed field, so we need to handle it specially
+    if (sortBy === "duration") {
+      orderByClause =
+        sortOrder === "asc"
+          ? asc(sql`${eventsTable.endDatetime} - ${eventsTable.startDatetime}`)
+          : desc(sql`${eventsTable.endDatetime} - ${eventsTable.startDatetime}`)
+    } else {
+      const column = eventsTable[sortBy]
+      orderByClause = sortOrder === "asc" ? asc(column) : desc(column)
+    }
+  }
+
   const events = (await db.query.eventsTable.findMany({
     where: and(...filters),
     with: {
@@ -60,6 +77,7 @@ export default async function searchEvents(
     },
     limit: input.limit,
     offset: input.page * input.limit,
+    orderBy: orderByClause,
   })) as (EventInfo<{ withOrganization: true }> & { poster: MediaInfo | null })[]
 
   await Promise.all(

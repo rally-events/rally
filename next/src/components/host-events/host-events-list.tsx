@@ -18,6 +18,8 @@ export const defaultFilters = {
   eventNameQuery: "",
   expectedAttendeesMin: undefined,
   expectedAttendeesMax: undefined,
+  sortBy: undefined,
+  sortOrder: undefined,
 }
 
 const LIMIT = 24
@@ -42,7 +44,21 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
       eventNameQuery: values.eventNameQuery,
       expectedAttendeesMin: values.expectedAttendeesMin,
       expectedAttendeesMax: values.expectedAttendeesMax,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
     })
+  }
+
+  const handleSortChange = (
+    sortBy?: string,
+    sortOrder?: "asc" | "desc",
+  ) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: 0, // Reset to first page when sorting changes
+      sortBy: sortBy as any,
+      sortOrder: sortOrder as any,
+    }))
   }
 
   return (
@@ -60,7 +76,13 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
         </div>
       </CardHeader>
       <CardContent>
-        <HostEventsDataTable data={events ?? []} isLoading={isLoading} />
+        <HostEventsDataTable
+          data={events ?? []}
+          isLoading={isLoading}
+          sortBy={filters.sortBy}
+          sortOrder={filters.sortOrder}
+          onSortChange={handleSortChange}
+        />
       </CardContent>
     </Card>
   )
