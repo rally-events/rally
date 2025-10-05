@@ -242,7 +242,7 @@ export default function EventCalendar({ events }: EventCalendarProps) {
     ]
 
     // Filter and sort events chronologically (earliest first)
-    const sortedEvents = events
+    const sortedEvents = events.events
       .filter((event) => event.startDatetime && event.endDatetime)
       .map((event, index) => ({
         ...event,

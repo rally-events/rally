@@ -57,7 +57,7 @@ export default async function searchEvents(
     if (includesUnspecified && specifiedFormats.length > 0) {
       // Include both specified formats AND null/undefined
       filters.push(
-        sql`(${inArray(eventsTable.format, specifiedFormats)} OR ${eventsTable.format} IS NULL)`
+        sql`(${inArray(eventsTable.format, specifiedFormats)} OR ${eventsTable.format} IS NULL)`,
       )
     } else if (includesUnspecified) {
       // Only unspecified - show null/undefined only
@@ -97,15 +97,27 @@ export default async function searchEvents(
     }
   }
 
-  const events = (await db.query.eventsTable.findMany({
-    where: and(...filters),
-    with: {
-      organization: true,
-    },
-    limit: input.limit,
-    offset: input.page * input.limit,
-    orderBy: orderByClause,
-  })) as (EventInfo<{ withOrganization: true }> & { poster: MediaInfo | null })[]
+  const [eventsRaw, totalCountResult] = await Promise.all([
+    db.query.eventsTable.findMany({
+      where: and(...filters),
+      with: {
+        organization: true,
+      },
+      limit: input.limit,
+      offset: input.page * input.limit,
+      orderBy: orderByClause,
+    }),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(eventsTable)
+      .where(and(...filters)),
+  ])
+
+  const events = eventsRaw as (EventInfo<{ withOrganization: true }> & {
+    poster: MediaInfo | null
+  })[]
+
+  const totalCount = totalCountResult[0]?.count || 0
 
   await Promise.all(
     events.map(async (event) => {
@@ -125,5 +137,5 @@ export default async function searchEvents(
     }),
   )
 
-  return events
+  return { events, totalCount }
 }

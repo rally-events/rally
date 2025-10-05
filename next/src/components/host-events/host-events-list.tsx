@@ -27,12 +27,12 @@ export const defaultFilters = {
   sortOrder: undefined,
 }
 
-const LIMIT = 12
+export const EVENT_HOST_TABLE_LIMIT = 12
 
 export default function HostEventsList({ user }: { user: UserInfo }) {
   const [currentView, setCurrentView] = useState<"grid" | "list">("grid")
   const [filters, setFilters] = useState<z.infer<typeof searchEventsSchema>>({
-    limit: LIMIT,
+    limit: EVENT_HOST_TABLE_LIMIT,
     page: 0,
     ...defaultFilters,
   })
@@ -41,7 +41,7 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
   const handleFilterSubmit = (values: z.infer<typeof searchEventsSchema>) => {
     // doing it this verbose to set undefined values back to undefined
     setFilters({
-      limit: LIMIT,
+      limit: EVENT_HOST_TABLE_LIMIT,
       page: 0,
       startDateRange: values.startDateRange,
       endDateRange: values.endDateRange,
@@ -63,6 +63,13 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
     }))
   }
 
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      page,
+    }))
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -79,11 +86,15 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
       </CardHeader>
       <CardContent>
         <HostEventsDataTable
-          data={events ?? []}
+          data={events?.events ?? []}
           isLoading={isLoading}
           sortBy={filters.sortBy}
           sortOrder={filters.sortOrder}
           onSortChange={handleSortChange}
+          totalCount={events?.totalCount ?? 0}
+          currentPage={filters.page}
+          pageSize={EVENT_HOST_TABLE_LIMIT}
+          onPageChange={handlePageChange}
         />
       </CardContent>
     </Card>

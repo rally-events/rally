@@ -22,11 +22,20 @@ import { useState, useEffect } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from "lucide-react"
+import {
+  Settings2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 import HostDataTableDropdown from "./host-data-table-dropdown"
+import { EVENT_HOST_TABLE_LIMIT } from "../host-events-list"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
-type EventSearchResult = RouterOutputs["event"]["searchEvents"]
+type EventSearchResult = RouterOutputs["event"]["searchEvents"]["events"]
 export type EventRow = EventSearchResult[number]
 
 interface HostEventsDataTableProps {
@@ -35,6 +44,10 @@ interface HostEventsDataTableProps {
   sortBy?: string
   sortOrder?: "asc" | "desc"
   onSortChange: (sortBy?: string, sortOrder?: "asc" | "desc") => void
+  totalCount: number
+  currentPage: number
+  pageSize: number
+  onPageChange: (page: number) => void
 }
 
 // Sortable columns
@@ -241,10 +254,18 @@ export default function HostEventsDataTable({
   sortBy,
   sortOrder,
   onSortChange,
+  totalCount,
+  currentPage,
+  pageSize,
+  onPageChange,
 }: HostEventsDataTableProps) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility)
 
   const columns = createColumns(sortBy, sortOrder, onSortChange)
+
+  const totalPages = Math.ceil(totalCount / pageSize)
+  const hasNextPage = currentPage < totalPages - 1
+  const hasPrevPage = currentPage > 0
 
   // Clear sorting when the sorted column is hidden
   useEffect(() => {
@@ -287,12 +308,12 @@ export default function HostEventsDataTable({
             ))}
           </TableHeader>
           <TableBody>
-            {[...Array(5)].map((_, index) => (
+            {[...Array(EVENT_HOST_TABLE_LIMIT)].map((_, index) => (
               <TableRow key={index}>
                 <TableCell />
                 {columns.map((_, colIndex) => (
                   <TableCell key={colIndex}>
-                    <div className="bg-muted h-4 animate-pulse rounded" />
+                    <div className="bg-muted h-8 animate-pulse rounded" />
                   </TableCell>
                 ))}
               </TableRow>
@@ -304,101 +325,134 @@ export default function HostEventsDataTable({
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              <TableHead className="w-12">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="iconSm">
-                      <Settings2 />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent align="start" className="w-56">
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium">Toggle Columns</div>
-                      {table.getVisibleLeafColumns().length >= 7 && (
-                        <div className="rounded bg-amber-50 p-2 text-xs text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-                          Maximum of 7 columns selected
-                        </div>
-                      )}
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                <TableHead className="w-12">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="iconSm">
+                        <Settings2 />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-56">
                       <div className="space-y-2">
-                        {table.getAllColumns().map((column) => {
-                          const columnId = column.id
-                          // Skip the actions column from visibility settings
-                          if (columnId === "actions") return null
+                        <div className="text-sm font-medium">Toggle Columns</div>
+                        {table.getVisibleLeafColumns().length >= 7 && (
+                          <div className="rounded bg-amber-50 p-2 text-xs text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                            Maximum of 7 columns selected
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          {table.getAllColumns().map((column) => {
+                            const columnId = column.id
+                            // Skip the actions column from visibility settings
+                            if (columnId === "actions") return null
 
-                          const header =
-                            typeof column.columnDef.header === "string"
-                              ? column.columnDef.header
-                              : columnId
-                          const isVisible = column.getIsVisible()
-                          const visibleCount = table.getVisibleLeafColumns().length
-                          const isDisabled = !isVisible && visibleCount >= 7
+                            const header =
+                              typeof column.columnDef.header === "string"
+                                ? column.columnDef.header
+                                : columnId
+                            const isVisible = column.getIsVisible()
+                            const visibleCount = table.getVisibleLeafColumns().length
+                            const isDisabled = !isVisible && visibleCount >= 7
 
-                          return (
-                            <div key={columnId} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={columnId}
-                                checked={isVisible}
-                                disabled={isDisabled}
-                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                              />
-                              <label
-                                htmlFor={columnId}
-                                className={`cursor-pointer text-sm leading-none font-normal ${
-                                  isDisabled
-                                    ? "cursor-not-allowed opacity-50"
-                                    : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                }`}
-                              >
-                                {header}
-                              </label>
-                            </div>
-                          )
-                        })}
+                            return (
+                              <div key={columnId} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={columnId}
+                                  checked={isVisible}
+                                  disabled={isDisabled}
+                                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                />
+                                <label
+                                  htmlFor={columnId}
+                                  className={`cursor-pointer text-sm leading-none font-normal ${
+                                    isDisabled
+                                      ? "cursor-not-allowed opacity-50"
+                                      : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                  }`}
+                                >
+                                  {header}
+                                </label>
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </TableHead>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                    </PopoverContent>
+                  </Popover>
                 </TableHead>
-              ))}
-              <TableHead className="w-12" />
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                <TableCell />
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
                 ))}
-                <TableCell className="w-12">
-                  <HostDataTableDropdown row={row} />
+                <TableHead className="w-12" />
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  <TableCell />
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                  <TableCell className="w-12">
+                    <HostDataTableDropdown row={row} />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+                  No events found.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
-                No events found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <div className="text-muted-foreground text-sm">
+          Showing {totalCount === 0 ? 0 : currentPage * pageSize + 1} to{" "}
+          {Math.min((currentPage + 1) * pageSize, totalCount)} of {totalCount} results
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={!hasPrevPage || isLoading}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <div className="text-sm">
+            Page {totalCount === 0 ? 0 : currentPage + 1} of {totalPages || 1}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={!hasNextPage || isLoading}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
