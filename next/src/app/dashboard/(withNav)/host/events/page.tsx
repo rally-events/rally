@@ -11,9 +11,6 @@ export default async function page() {
   if (!user || !user.organizationId) {
     notFound()
   }
-  const events = await caller.event.searchEvents({
-    organizationId: user.organizationId,
-  })
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-4">
@@ -32,7 +29,7 @@ export default async function page() {
         <section>
           <Card>
             <CardContent>
-              <EventCalendar events={events} />
+              <EventCalendar user={user} />
             </CardContent>
           </Card>
         </section>

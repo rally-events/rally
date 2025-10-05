@@ -19,8 +19,8 @@ export const searchEventsSchema = z.object({
   organizationId: z.string().optional(),
   limit: z.number().optional().default(12),
   page: z.number().optional().default(0),
-  startDateRange: z.date().optional(),
-  endDateRange: z.date().optional(),
+  startDateRange: z.coerce.date().optional() as z.ZodOptional<z.ZodDate>,
+  endDateRange: z.coerce.date().optional() as z.ZodOptional<z.ZodDate>,
   format: z.array(z.enum(["in-person", "virtual", "hybrid", "unspecified"])).optional(),
   expectedAttendeesMin: z.coerce
     .number()

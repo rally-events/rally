@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react"
+import React from "react"
 import EventEditorHeader from "./header/event-editor-header"
 import EventEditorRight from "./side-components/event-editor-right"
 import EventEditorLeft from "./side-components/event-editor-left"

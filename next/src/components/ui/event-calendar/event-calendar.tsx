@@ -1,17 +1,17 @@
 "use client"
-import { EventSearchInfo } from "@rally/api"
+import { UserInfo } from "@rally/api"
 import React, { useState, useMemo } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../button"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../hover-card"
 import { useRouter } from "next/navigation"
 import { OverflowIndicator } from "./overflow-indicator"
+import { api } from "@/lib/trpc/client"
 
 // TODO: clean this mf mess up
-// TODO: make this fetch on client and re-fetch as you move through months.
 
 interface EventCalendarProps {
-  events: EventSearchInfo
+  user: UserInfo
 }
 
 interface EventBarSegment {
@@ -166,7 +166,7 @@ function MultiRunEvent({ runs, href }: { runs: EventRun[]; href: string }) {
   )
 }
 
-export default function EventCalendar({ events }: EventCalendarProps) {
+export default function EventCalendar({ user }: EventCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
 
   const year = currentDate.getFullYear()
@@ -176,6 +176,15 @@ export default function EventCalendar({ events }: EventCalendarProps) {
   const lastDayOfMonth = new Date(year, month + 1, 0)
   const daysInMonth = lastDayOfMonth.getDate()
   const startingDayOfWeek = firstDayOfMonth.getDay()
+
+  // Fetch events for the current month
+  const { data: eventsData, isLoading } = api.event.searchEvents.useQuery({
+    organizationId: user.organizationId!,
+    startDateRange: firstDayOfMonth,
+    endDateRange: lastDayOfMonth,
+  })
+
+  const events = eventsData ?? { events: [], totalCount: 0 }
 
   const today = new Date()
   const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year
@@ -596,8 +605,12 @@ export default function EventCalendar({ events }: EventCalendarProps) {
           return (
             <div
               key={cellIndex}
-              className={`relative flex h-20 flex-col items-start overflow-visible rounded p-1.5 ${
-                isEmptyCell ? "" : isToday ? "bg-blue-500 text-white" : "bg-surface"
+              className={`relative flex h-16 flex-col items-start overflow-visible rounded border p-1.5 ${
+                isEmptyCell
+                  ? "border-transparent"
+                  : isToday
+                    ? "bg-primary/10 border-primary/20"
+                    : "bg-surface border-transparent"
               }`}
             >
               {day !== null && <span className="relative text-sm font-medium">{day}</span>}

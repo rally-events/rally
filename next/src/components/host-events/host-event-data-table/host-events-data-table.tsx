@@ -293,7 +293,7 @@ export default function HostEventsDataTable({
               <TableRow key={headerGroup.id}>
                 <TableHead className="w-12">
                   <Button variant="ghost" size="iconSm" disabled>
-                    <Settings2 className="h-4 w-4" />
+                    <Settings2 />
                   </Button>
                 </TableHead>
                 {headerGroup.headers.map((header) => (
@@ -342,7 +342,7 @@ export default function HostEventsDataTable({
                       <div className="space-y-2">
                         <div className="text-sm font-medium">Toggle Columns</div>
                         {table.getVisibleLeafColumns().length >= 7 && (
-                          <div className="rounded bg-amber-50 p-2 text-xs text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                          <div className="bg-warning-background text-warning border-warning-border rounded border p-2 text-xs">
                             Maximum of 7 columns selected
                           </div>
                         )}
