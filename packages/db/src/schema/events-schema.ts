@@ -2,6 +2,7 @@ import {
   boolean,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -12,6 +13,10 @@ import { organizationsTable } from "./organization-schema"
 import { relations } from "drizzle-orm"
 import { mediaTable } from "./media-schema"
 import { usersTable } from "./user-schema"
+import { ageOptions, formatOptions } from "@rally/schemas"
+
+export const formatEnum = pgEnum("format_enum", formatOptions as [string, ...string[]])
+export const audienceAgeEnum = pgEnum("audience_age_enum", ageOptions as [string, ...string[]])
 
 export const eventsTable = pgTable("events", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -19,7 +24,7 @@ export const eventsTable = pgTable("events", {
   description: text("description"),
   organizationId: uuid("organization_id").references(() => organizationsTable.id),
   eventType: text("event_type"),
-  format: text("format"),
+  format: formatEnum("format"),
   usingOrganizationAddress: boolean("using_organization_address").default(false),
   streetAddress: text("street_address"),
   city: text("city"),
@@ -30,10 +35,10 @@ export const eventsTable = pgTable("events", {
   endDatetime: timestamp("end_datetime"),
   expectedAttendeesMin: integer("expected_attendees_min"),
   expectedAttendeesMax: integer("expected_attendees_max"),
-  themes: jsonb("themes").$type<string[]>(),
-  audienceAge: jsonb("audience_age").$type<string[]>(),
-  communitySegments: jsonb("community_segments").$type<string[]>(),
-  audienceInterests: jsonb("audience_interests").$type<string[]>(),
+  themes: text("themes").array(),
+  audienceAge: audienceAgeEnum("audience_age").array(),
+  communitySegments: text("community_segments").array(),
+  audienceInterests: text("audience_interests").array(),
   hasFamousPeople: boolean("has_famous_people").default(false),
   famousPeople: jsonb("famous_people").$type<
     Array<{

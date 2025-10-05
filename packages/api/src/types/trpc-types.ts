@@ -9,7 +9,6 @@ import {
   eventsMediaTable,
 } from "@rally/db"
 import { SupabaseUserMetadata } from "../user/getUserInfo"
-import getEventMedia from "../media/getEventMedia"
 import searchEvents from "../events/searchEvents"
 
 export type EventSearchInfo = NonNullable<Awaited<ReturnType<typeof searchEvents>>>

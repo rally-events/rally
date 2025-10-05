@@ -85,6 +85,13 @@
       "when": 1759348239240,
       "tag": "0011_common_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1759636834415,
+      "tag": "0012_powerful_shooting_star",
+      "breakpoints": true
     }
   ]
 }

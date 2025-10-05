@@ -20,11 +20,15 @@ export const eventTypeOptions = [
   { value: "hybrid", label: "Hybrid" },
 ]
 
+export const formatOptions = ["in-person", "virtual", "hybrid"]
+
 const eventTypeEnum = z.enum(eventTypeOptions.map((option) => option.value))
 
-const formatEnum = z.enum(["in-person", "virtual", "hybrid", ""])
+const formatEnum = z.enum([...formatOptions, ""])
 
-const audienceAgeEnum = z.enum(["under-18", "18-21", "22-30", "31-40", "41-50", "51-60", "over-60"])
+export const ageOptions = ["under-18", "18-21", "22-30", "31-40", "41-50", "51-60", "over-60"]
+
+const audienceAgeEnum = z.enum([...ageOptions])
 
 const famousPersonSchema = z.object({
   name: z.string().min(1, "Name is required"),
