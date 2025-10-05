@@ -49,10 +49,7 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
     })
   }
 
-  const handleSortChange = (
-    sortBy?: string,
-    sortOrder?: "asc" | "desc",
-  ) => {
+  const handleSortChange = (sortBy?: string, sortOrder?: "asc" | "desc") => {
     setFilters((prev) => ({
       ...prev,
       page: 0, // Reset to first page when sorting changes

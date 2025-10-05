@@ -1,4 +1,17 @@
-import { db, eq, eventsMediaTable, eventsTable, inArray, and, gte, lte, sql, SQL, asc, desc } from "@rally/db"
+import {
+  db,
+  eq,
+  eventsMediaTable,
+  eventsTable,
+  inArray,
+  and,
+  gte,
+  lte,
+  sql,
+  SQL,
+  asc,
+  desc,
+} from "@rally/db"
 import { TRPCContext } from "../context"
 import z from "zod"
 import { searchEventsSchema } from "@rally/schemas"

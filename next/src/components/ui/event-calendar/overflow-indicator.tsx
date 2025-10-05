@@ -25,7 +25,7 @@ export function OverflowIndicator({ runs, overflowEvents }: OverflowIndicatorPro
   // Calculate the true start index for positioning (leftmost cell)
   const trueStartIndex = runs.reduce(
     (min, run) => Math.min(min, run.startCellIndex),
-    runs[0].startCellIndex
+    runs[0].startCellIndex,
   )
 
   const displayRun = runs[0]
