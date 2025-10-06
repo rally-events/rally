@@ -34,8 +34,8 @@ const famousPersonSchema = z.object({
   name: z.string().min(1, "Name is required"),
   title: z.string().min(1, "Title is required"),
   profession: z.string().min(1, "Profession/industry is required"),
-  instagram: z.string().url("Invalid Instagram URL").optional(),
-  website: z.string().url("Invalid website URL").optional(),
+  instagram: z.url("Invalid Instagram URL").optional(),
+  website: z.url("Invalid website URL").optional(),
 })
 
 const sixHoursFromNow = new Date(Date.now() + 6 * 60 * 60 * 1000)

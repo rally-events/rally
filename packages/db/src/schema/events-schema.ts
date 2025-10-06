@@ -1,5 +1,6 @@
 import {
   boolean,
+  decimal,
   integer,
   jsonb,
   pgEnum,
@@ -40,17 +41,17 @@ export const eventsTable = pgTable("events", {
   communitySegments: text("community_segments").array(),
   audienceInterests: text("audience_interests").array(),
   hasFamousPeople: boolean("has_famous_people").default(false),
-  famousPeople: jsonb("famous_people").$type<
-    Array<{
+  famousPeople: jsonb("famous_people")
+    .$type<{
       name: string
       title: string
       profession: string
       instagram?: string
       website?: string
-    }>
-  >(),
+    }>()
+    .array(),
   isTicketed: boolean("is_ticketed").default(false),
-  ticketCost: text("ticket_cost"),
+  ticketCost: decimal("ticket_cost"),
 
   updatedBy: uuid("updated_by")
     .references(() => usersTable.id)
