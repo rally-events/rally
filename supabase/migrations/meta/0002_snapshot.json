@@ -1,5 +1,5 @@
 {
-  "id": "ac909f6b-3c3e-44fc-9b11-f3d3bb997cef",
+  "id": "bbfeecf8-0f21-4409-a5c7-76a52324715b",
   "prevId": "905e89ee-4859-4aa6-acf6-29b39d4b98d7",
   "version": "7",
   "dialect": "postgresql",
@@ -143,6 +143,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "venue_details": {
+          "name": "venue_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "start_datetime": {
           "name": "start_datetime",
           "type": "timestamp",
@@ -199,9 +205,15 @@
           "notNull": false,
           "default": false
         },
+        "event_website": {
+          "name": "event_website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "famous_people": {
           "name": "famous_people",
-          "type": "jsonb",
+          "type": "jsonb[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -214,7 +226,7 @@
         },
         "ticket_cost": {
           "name": "ticket_cost",
-          "type": "text",
+          "type": "numeric",
           "primaryKey": false,
           "notNull": false
         },

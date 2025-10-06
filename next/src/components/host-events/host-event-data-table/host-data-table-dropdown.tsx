@@ -9,6 +9,7 @@ import { EditIcon, EyeIcon, MoreVertical, ShareIcon, TrashIcon } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { Row } from "@tanstack/react-table"
 import { EventRow } from "./host-events-data-table"
+import Link from "next/link"
 interface HostDataTableDropdownProps {
   row: Row<EventRow>
 }
@@ -22,9 +23,11 @@ export default function HostDataTableDropdown({ row }: HostDataTableDropdownProp
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>
-          <EyeIcon />
-          View
+        <DropdownMenuItem asChild>
+          <Link href={`/dashboard/event/${row.original.id}`}>
+            <EyeIcon />
+            View
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <EditIcon />

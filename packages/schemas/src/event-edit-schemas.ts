@@ -53,6 +53,7 @@ export const eventEditSchema = z
     state: z.string().max(2, "State must be 2 characters"), // TODO: Make this a state code enum
     country: z.string().max(255, "Country must be 255 characters or less"),
     zipCode: z.string().max(20, "Zip code must be 20 characters or less"),
+    venueDetails: z.string().max(2000, "Venue details must not exceed 2000 characters"),
     startDatetime: z.date().min(sixHoursFromNow, "Start time must be at least 6 hours from now"),
     endDatetime: z.date(),
     expectedAttendees: z.object({
@@ -72,6 +73,7 @@ export const eventEditSchema = z
     ),
     hasFamousPeople: z.boolean().default(false),
     famousPeople: z.array(famousPersonSchema),
+    eventWebsite: z.url("Invalid website URL").optional().nullable(),
     isTicketed: z.boolean().default(false),
     ticketCost: z
       .union([z.number().positive("Ticket cost must be positive"), z.literal("other")])
@@ -155,6 +157,11 @@ export const eventEditOptionalSchema = z
     state: z.string().optional(),
     country: z.string().optional(),
     zipCode: z.string().optional(),
+    venueDetails: z
+      .string()
+      .max(2000, "Venue details must not exceed 2000 characters")
+      .optional()
+      .nullable(),
     startDatetime: z.coerce
       .date()
       .min(sixHoursFromNow, "Start time must be at least 6 hours from now")
@@ -171,6 +178,7 @@ export const eventEditOptionalSchema = z
     audienceInterests: z.array(z.string()).optional(),
     hasFamousPeople: z.boolean().optional(),
     famousPeople: z.array(famousPersonSchema).optional(),
+    eventWebsite: z.url("Invalid website URL").optional().nullable(),
     isTicketed: z.boolean().optional(),
     ticketCost: z
       .union([z.number().positive("Ticket cost must be positive"), z.literal("other")])

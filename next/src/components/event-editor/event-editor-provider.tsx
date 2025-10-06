@@ -71,11 +71,12 @@ export default function EventEditorProvider({
       // Set new timeout for autosave
       saveTimeoutRef.current = setTimeout(async () => {
         // Only save if form is valid
-        const isValid = await form.trigger()
+        const isValid = await form.trigger(undefined, { shouldFocus: true })
         if (!isValid) {
-          console.error("[EventEditor] Autosave failed", form.formState.errors)
+          const errors = form.formState.errors
+          console.error("[EventEditor] Autosave failed", errors)
           setSaveStatus("error")
-          return
+          return errors
         }
 
         try {
@@ -103,6 +104,8 @@ export default function EventEditorProvider({
       }
     }
   }, [event.id, form.trigger])
+
+  console.log("[EventEditor] Form errors", form.formState.errors)
 
   // Browser warning for unsaved changes
   useEffect(() => {

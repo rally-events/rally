@@ -19,7 +19,12 @@ function TextareaCounter({ className, max, ...props }: TextareaCounterProps) {
 
   return (
     <div className="relative">
-      <Textarea className={cn(className, "pb-8")} {...props} onChange={handleChange} />
+      <Textarea
+        className={cn(className, "pb-8")}
+        {...props}
+        maxLength={max}
+        onChange={handleChange}
+      />
       <div className="text-muted-foreground absolute right-1 -bottom-4 text-xs">
         {max ? `${count}/${max}` : count}
       </div>

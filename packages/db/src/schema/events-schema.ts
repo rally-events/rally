@@ -32,6 +32,7 @@ export const eventsTable = pgTable("events", {
   state: text("state"),
   country: text("country"),
   zipCode: text("zip_code"),
+  venueDetails: text("venue_details"),
   startDatetime: timestamp("start_datetime"),
   endDatetime: timestamp("end_datetime"),
   expectedAttendeesMin: integer("expected_attendees_min"),
@@ -41,6 +42,7 @@ export const eventsTable = pgTable("events", {
   communitySegments: text("community_segments").array(),
   audienceInterests: text("audience_interests").array(),
   hasFamousPeople: boolean("has_famous_people").default(false),
+  eventWebsite: text("event_website"),
   famousPeople: jsonb("famous_people")
     .$type<{
       name: string
