@@ -25,11 +25,54 @@ import {
 import { toast } from "sonner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import imageCompression from "browser-image-compression"
+import { encode } from "blurhash"
 
 interface UploadProgress {
   fileName: string
   progress: number
   error?: string
+}
+
+/**
+ * Generate a blurhash from an image file
+ */
+async function generateBlurhash(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const canvas = document.createElement("canvas")
+    const ctx = canvas.getContext("2d")
+
+    img.onload = () => {
+      // Use a small canvas for blurhash generation (faster)
+      const scale = Math.min(1, 100 / Math.max(img.width, img.height))
+      canvas.width = Math.floor(img.width * scale)
+      canvas.height = Math.floor(img.height * scale)
+
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height)
+      if (!imageData) {
+        reject(new Error("Failed to get image data"))
+        return
+      }
+
+      try {
+        const hash = encode(imageData.data, canvas.width, canvas.height, 4, 3)
+        resolve(hash)
+      } catch (error) {
+        reject(error)
+      }
+
+      URL.revokeObjectURL(img.src)
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src)
+      reject(new Error("Failed to load image for blurhash generation"))
+    }
+
+    img.src = URL.createObjectURL(file)
+  })
 }
 
 export default function EventEditorMedia() {
@@ -96,10 +139,11 @@ export default function EventEditorMedia() {
           [progressKey]: { fileName: file.name, progress: 15 },
         }))
 
-        // Compress images and posters to WebP
+        // Compress images and posters to WebP and generate blurhash
         let fileToUpload = file
         let mimeType = file.type
         let fileName = file.name
+        let blurhash: string | undefined
 
         if (isImage || isPoster) {
           const options = {
@@ -113,6 +157,14 @@ export default function EventEditorMedia() {
           mimeType = "image/webp"
           // Replace original extension with .webp
           fileName = file.name.replace(/\.[^/.]+$/, ".webp")
+
+          // Generate blurhash from compressed image
+          try {
+            blurhash = await generateBlurhash(compressedFile)
+          } catch (error) {
+            console.error("Failed to generate blurhash:", error)
+            // Continue without blurhash if generation fails
+          }
         }
 
         setUploadProgress((prev) => ({
@@ -162,6 +214,7 @@ export default function EventEditorMedia() {
           mimeType,
           mediaType,
           fileName,
+          blurhash,
         })
 
         setUploadProgress((prev) => ({

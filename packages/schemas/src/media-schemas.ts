@@ -31,6 +31,7 @@ export const confirmUploadSchema = z.object({
   mimeType: z.string().min(1, "MIME type is required"),
   mediaType: z.enum(["image", "video", "poster", "pdf"]),
   fileName: z.string().min(1, "File name is required"),
+  blurhash: z.string().optional(),
 })
 
 export const getEventMediaSchema = z.object({
