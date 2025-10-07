@@ -13,6 +13,7 @@ export const mediaTable = pgTable("media", {
     .notNull(),
   r2FileKey: text("r2_file_key").notNull(),
   fileSize: integer("file_size").notNull(),
+  blurhash: text("blurhash"),
   mimeType: text("mime_type").notNull(),
   fileName: text("file_name").notNull(),
   mediaType: mediaTypeEnum("media_type").notNull(),

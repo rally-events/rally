@@ -18,7 +18,9 @@
       "Bash(pnpm --filter @rally/db type-check)",
       "Bash(pnpm --filter @rally/next type-check)",
       "Bash(pnpm --filter @rally/api build)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm --filter next build)"
     ],
     "deny": [],
     "ask": []

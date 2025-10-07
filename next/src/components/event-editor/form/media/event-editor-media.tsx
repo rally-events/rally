@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import imageCompression from "browser-image-compression"
 
 interface UploadProgress {
   fileName: string
@@ -47,6 +48,7 @@ export default function EventEditorMedia() {
       const isVideo = file.type.startsWith("video/")
       const isPDF = file.type === "application/pdf"
       const isPoster = mediaType === "poster"
+      const isImage = mediaType === "image"
       const progressKey = file.name
 
       try {
@@ -91,14 +93,38 @@ export default function EventEditorMedia() {
 
         setUploadProgress((prev) => ({
           ...prev,
-          [progressKey]: { fileName: file.name, progress: 25 },
+          [progressKey]: { fileName: file.name, progress: 15 },
+        }))
+
+        // Compress images and posters to WebP
+        let fileToUpload = file
+        let mimeType = file.type
+        let fileName = file.name
+
+        if (isImage || isPoster) {
+          const options = {
+            maxSizeMB: 1,
+            fileType: "image/webp" as const,
+            initialQuality: 0.9,
+          }
+
+          const compressedFile = await imageCompression(file, options)
+          fileToUpload = compressedFile
+          mimeType = "image/webp"
+          // Replace original extension with .webp
+          fileName = file.name.replace(/\.[^/.]+$/, ".webp")
+        }
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 30 },
         }))
 
         // Step 1: Get presigned upload URL
         const { uploadUrl, fileKey } = await generateUploadUrl.mutateAsync({
           eventId: event.id,
-          mimeType: file.type,
-          fileSize: file.size,
+          mimeType,
+          fileSize: fileToUpload.size,
           mediaType,
           width: width || undefined,
           height: height || undefined,
@@ -107,15 +133,15 @@ export default function EventEditorMedia() {
 
         setUploadProgress((prev) => ({
           ...prev,
-          [progressKey]: { fileName: file.name, progress: 40 },
+          [progressKey]: { fileName: file.name, progress: 45 },
         }))
 
         // Step 2: Upload file to R2
         const uploadResponse = await fetch(uploadUrl, {
           method: "PUT",
-          body: file,
+          body: fileToUpload,
           headers: {
-            "Content-Type": file.type,
+            "Content-Type": mimeType,
           },
         })
 
@@ -125,17 +151,17 @@ export default function EventEditorMedia() {
 
         setUploadProgress((prev) => ({
           ...prev,
-          [progressKey]: { fileName: file.name, progress: 70 },
+          [progressKey]: { fileName: file.name, progress: 75 },
         }))
 
         // Step 3: Confirm upload and save metadata
         const mediaRecord = await confirmUpload.mutateAsync({
           eventId: event.id,
           fileKey,
-          fileSize: file.size,
-          mimeType: file.type,
+          fileSize: fileToUpload.size,
+          mimeType,
           mediaType,
-          fileName: file.name,
+          fileName,
         })
 
         setUploadProgress((prev) => ({
@@ -148,7 +174,7 @@ export default function EventEditorMedia() {
           {
             eventId: event.id,
             mediaId: mediaRecord.id,
-            downloadUrl: URL.createObjectURL(file), // Temporary preview URL
+            downloadUrl: URL.createObjectURL(fileToUpload), // Temporary preview URL
             media: {
               ...mediaRecord,
               createdAt: new Date(mediaRecord.createdAt),
