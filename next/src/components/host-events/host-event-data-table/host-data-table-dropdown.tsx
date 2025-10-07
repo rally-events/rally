@@ -1,4 +1,5 @@
-import React from "react"
+"use client"
+import React, { useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +11,18 @@ import { Button } from "@/components/ui/button"
 import { Row } from "@tanstack/react-table"
 import { EventRow } from "./host-events-data-table"
 import Link from "next/link"
+import { api } from "@/lib/trpc/client"
 interface HostDataTableDropdownProps {
   row: Row<EventRow>
+  handleDeleteEvent: () => void
+  deleteEventPending: boolean
 }
 
-export default function HostDataTableDropdown({ row }: HostDataTableDropdownProps) {
+export default function HostDataTableDropdown({
+  row,
+  handleDeleteEvent,
+  deleteEventPending,
+}: HostDataTableDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,7 +47,14 @@ export default function HostDataTableDropdown({ row }: HostDataTableDropdownProp
           <ShareIcon />
           Share
         </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={(e) => {
+            e.preventDefault()
+            handleDeleteEvent()
+          }}
+          isLoading={deleteEventPending}
+        >
           <TrashIcon />
           Delete
         </DropdownMenuItem>

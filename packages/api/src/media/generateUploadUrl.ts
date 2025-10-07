@@ -62,33 +62,25 @@ export default async function generateUploadUrl(
         })
       }
 
-      // Validate poster aspect ratio
-      const aspectRatio = width / height
-      const POSTER_ASPECT_RATIOS = [
-        { ratio: 11 / 17, name: "11:17" },
-        { ratio: 4 / 5, name: "4:5" },
-        { ratio: 9 / 16, name: "9:16" },
-        { ratio: 8.5 / 11, name: "8.5:11" },
-      ]
-      const ASPECT_RATIO_TOLERANCE = 0.02
-
-      const matchingRatio = POSTER_ASPECT_RATIOS.find(
-        ({ ratio }) => Math.abs(aspectRatio - ratio) <= ASPECT_RATIO_TOLERANCE,
-      )
-
-      if (!matchingRatio) {
-        const ratioNames = POSTER_ASPECT_RATIOS.map((r) => r.name).join(", ")
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Poster must have one of these aspect ratios: ${ratioNames}. Current aspect ratio: ${aspectRatio.toFixed(3)}`,
-        })
-      }
-    } else {
-      // Regular images and videos
+      // Note: Aspect ratio validation is handled on the frontend with cropping modal
+      // Backend only validates dimension ranges
+    } else if (mediaType === "image") {
+      // Regular images
       if (width < 250 || width > 8000 || height < 250 || height > 8000) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid media dimensions. Must be between 250px and 8000px on both dimensions.",
+          message: "Invalid image dimensions. Must be between 250px and 8000px on both dimensions.",
+        })
+      }
+
+      // Note: Aspect ratio validation (1:1, 4:5, or 5:4) is handled on the frontend with cropping modal
+      // Backend only validates dimension ranges
+    } else if (isVideo) {
+      // Videos - no aspect ratio restriction
+      if (width < 250 || width > 8000 || height < 250 || height > 8000) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid video dimensions. Must be between 250px and 8000px on both dimensions.",
         })
       }
     }

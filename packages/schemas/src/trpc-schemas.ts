@@ -48,3 +48,7 @@ export const searchEventsSchema = z.object({
     .optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
+
+export const deleteEventSchema = z.object({
+  id: z.string(),
+})

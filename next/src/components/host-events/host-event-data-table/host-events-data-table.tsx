@@ -22,17 +22,10 @@ import { useState, useEffect } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Settings2,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react"
+import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react"
 import HostDataTableDropdown from "./host-data-table-dropdown"
 import { EVENT_HOST_TABLE_LIMIT } from "../host-events-list"
+import { api } from "@/lib/trpc/client"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
 type EventSearchResult = RouterOutputs["event"]["searchEvents"]["events"]
@@ -44,6 +37,8 @@ interface HostEventsDataTableProps {
   sortBy?: string
   sortOrder?: "asc" | "desc"
   onSortChange: (sortBy?: string, sortOrder?: "asc" | "desc") => void
+  onDeleteEvent: (id: string) => void
+  deleteEventPending: boolean
   totalCount: number
   currentPage: number
   pageSize: number
@@ -254,6 +249,8 @@ export default function HostEventsDataTable({
   sortBy,
   sortOrder,
   onSortChange,
+  onDeleteEvent,
+  deleteEventPending,
   totalCount,
   currentPage,
   pageSize,
@@ -408,7 +405,11 @@ export default function HostEventsDataTable({
                     </TableCell>
                   ))}
                   <TableCell className="w-12">
-                    <HostDataTableDropdown row={row} />
+                    <HostDataTableDropdown
+                      row={row}
+                      handleDeleteEvent={() => onDeleteEvent(row.original.id)}
+                      deleteEventPending={deleteEventPending}
+                    />
                   </TableCell>
                 </TableRow>
               ))

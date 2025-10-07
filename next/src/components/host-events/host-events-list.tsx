@@ -37,6 +37,8 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
     ...defaultFilters,
   })
   const { data: events, isLoading, error } = api.event.searchEvents.useQuery(filters)
+  const { mutate: deleteEvent, isPending: isDeleteEventPending } =
+    api.event.deleteEvent.useMutation()
 
   const handleFilterSubmit = (values: z.infer<typeof searchEventsSchema>) => {
     // doing it this verbose to set undefined values back to undefined
@@ -70,6 +72,10 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
     }))
   }
 
+  const handleDeleteEvent = (id: string) => {
+    deleteEvent({ id })
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -91,6 +97,8 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
           sortBy={filters.sortBy}
           sortOrder={filters.sortOrder}
           onSortChange={handleSortChange}
+          onDeleteEvent={handleDeleteEvent}
+          deleteEventPending={isDeleteEventPending}
           totalCount={events?.totalCount ?? 0}
           currentPage={filters.page}
           pageSize={EVENT_HOST_TABLE_LIMIT}

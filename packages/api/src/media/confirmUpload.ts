@@ -8,7 +8,7 @@ export default async function confirmUpload(
   ctx: Context,
   input: z.infer<typeof confirmUploadSchema>,
 ) {
-  const { eventId, fileKey, fileSize, mimeType, mediaType, fileName, blurhash, posterAspectRatio } =
+  const { eventId, fileKey, fileSize, mimeType, mediaType, fileName, blurhash, aspectRatio } =
     input
 
   if (!ctx.user) {
@@ -49,7 +49,7 @@ export default async function confirmUpload(
       mediaType,
       uploadedBy: ctx.user.id,
       blurhash: blurhash || null,
-      posterAspectRatio: posterAspectRatio || null,
+      aspectRatio: aspectRatio || null,
     })
     .returning()
 

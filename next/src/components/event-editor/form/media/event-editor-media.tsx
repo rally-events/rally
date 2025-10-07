@@ -26,11 +26,18 @@ import { toast } from "sonner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import imageCompression from "browser-image-compression"
 import { encode } from "blurhash"
+import ImageCropModal from "./image-crop-modal"
 
 interface UploadProgress {
   fileName: string
   progress: number
   error?: string
+}
+
+interface CropModalState {
+  file: File
+  mediaType: "image" | "poster"
+  suggestedAspectRatio: "1:1" | "4:5" | "5:4"
 }
 
 /**
@@ -80,6 +87,7 @@ export default function EventEditorMedia() {
     useEventEditor()
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<Record<string, UploadProgress>>({})
+  const [cropModalState, setCropModalState] = useState<CropModalState | null>(null)
 
   const images = uploadedMedia.filter((m) => m.media.mediaType === "image")
   const video = uploadedMedia.find((m) => m.media.mediaType === "video")
@@ -104,7 +112,7 @@ export default function EventEditorMedia() {
         let width: number | undefined
         let height: number | undefined
         let duration: number | undefined
-        let posterAspectRatio: string | undefined
+        let aspectRatio: string | undefined
 
         if (isPDF) {
           const validation = await validatePDF(file)
@@ -116,9 +124,23 @@ export default function EventEditorMedia() {
           if (!validation.valid) {
             throw new Error(validation.error)
           }
+          // Check if cropping is needed
+          if (validation.needsCropping) {
+            // Clear progress indicator
+            setUploadProgress((prev) => {
+              const { [progressKey]: _, ...rest } = prev
+              return rest
+            })
+            setCropModalState({
+              file,
+              mediaType: "poster",
+              suggestedAspectRatio: validation.suggestedAspectRatio!,
+            })
+            return
+          }
           width = validation.width!
           height = validation.height!
-          posterAspectRatio = validation.aspectRatio!
+          aspectRatio = validation.aspectRatio!
         } else if (isVideo) {
           const validation = await validateVideoDimensions(file)
           if (!validation.valid) {
@@ -127,13 +149,28 @@ export default function EventEditorMedia() {
           width = validation.width!
           height = validation.height!
           duration = validation.duration!
-        } else {
+        } else if (isImage) {
           const validation = await validateImageDimensions(file)
           if (!validation.valid) {
             throw new Error(validation.error)
           }
+          // Check if cropping is needed
+          if (validation.needsCropping) {
+            // Clear progress indicator
+            setUploadProgress((prev) => {
+              const { [progressKey]: _, ...rest } = prev
+              return rest
+            })
+            setCropModalState({
+              file,
+              mediaType: "image",
+              suggestedAspectRatio: validation.suggestedAspectRatio!,
+            })
+            return
+          }
           width = validation.width!
           height = validation.height!
+          aspectRatio = validation.aspectRatio!
         }
 
         setUploadProgress((prev) => ({
@@ -217,8 +254,7 @@ export default function EventEditorMedia() {
           mediaType,
           fileName,
           blurhash,
-          posterAspectRatio:
-            posterAspectRatio as "11:17" | "4:5" | "9:16" | "8.5:11" | undefined,
+          aspectRatio: aspectRatio as "1:1" | "4:5" | "5:4" | undefined,
         })
 
         setUploadProgress((prev) => ({
@@ -265,6 +301,29 @@ export default function EventEditorMedia() {
       }
     },
     [event.id, generateUploadUrl, confirmUpload, setUploadedMedia],
+  )
+
+  const handleCroppedImage = useCallback(
+    async (croppedBlob: Blob, aspectRatio: "1:1" | "4:5" | "5:4") => {
+      if (!cropModalState) return
+
+      const { file, mediaType } = cropModalState
+
+      // Convert blob to File
+      const croppedFile = new File([croppedBlob], file.name, {
+        type: croppedBlob.type,
+        lastModified: Date.now(),
+      })
+
+      // Close modal
+      setCropModalState(null)
+
+      // Process the cropped file through the normal upload flow
+      setUploading(true)
+      await handleUploadFile(croppedFile, mediaType)
+      setUploading(false)
+    },
+    [cropModalState, handleUploadFile],
   )
 
   const onDropImages = useCallback(
@@ -414,7 +473,7 @@ export default function EventEditorMedia() {
           <CardTitle>Photos</CardTitle>
           <CardDescription>
             Upload up to 10 photos. Each photo must be between 250px and 8,000px on both dimensions,
-            and at most 20MB in size.
+            have an aspect ratio of 1:1, 4:5, or 5:4, and at most 20MB in size.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -576,7 +635,7 @@ export default function EventEditorMedia() {
           <CardTitle>Event Poster/Flyer</CardTitle>
           <CardDescription>
             Upload one event poster or flyer (optional). Must be between 500px and 12,000px on both
-            dimensions, with aspect ratio 11:17, 4:5, 9:16, or 8.5:11, and at most 20MB in size.
+            dimensions, with a 4:5 aspect ratio, and at most 20MB in size.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -599,7 +658,7 @@ export default function EventEditorMedia() {
                     : "Drag & drop a poster here, or click to select"}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  JPEG, PNG, WebP (max 20MB, aspect ratios: 11:17, 4:5, 9:16, 8.5:11)
+                  JPEG, PNG, WebP (max 20MB, aspect ratio: 4:5)
                 </p>
               </div>
 
@@ -732,6 +791,18 @@ export default function EventEditorMedia() {
           )}
         </CardContent>
       </Card>
+
+      {/* Image Crop Modal */}
+      {cropModalState && (
+        <ImageCropModal
+          open={!!cropModalState}
+          onClose={() => setCropModalState(null)}
+          file={cropModalState.file}
+          mediaType={cropModalState.mediaType}
+          suggestedAspectRatio={cropModalState.suggestedAspectRatio}
+          onSave={handleCroppedImage}
+        />
+      )}
     </div>
   )
 }

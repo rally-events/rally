@@ -36,6 +36,20 @@
       "when": 1759799333275,
       "tag": "0004_fast_black_tom",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759875983575,
+      "tag": "0005_mushy_kabuki",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759879602048,
+      "tag": "0006_dazzling_human_torch",
+      "breakpoints": true
     }
   ]
 }

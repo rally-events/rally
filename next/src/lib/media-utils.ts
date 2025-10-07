@@ -8,6 +8,8 @@ export interface ImageValidationResult {
   height?: number
   error?: string
   aspectRatio?: string
+  needsCropping?: boolean
+  suggestedAspectRatio?: "1:1" | "4:5" | "5:4"
 }
 
 export interface VideoValidationResult {
@@ -29,11 +31,13 @@ const MAX_VIDEO_DURATION = 120 // seconds (2 minutes)
 const MIN_POSTER_DIMENSION = 500
 const MAX_POSTER_DIMENSION = 12000
 const MAX_POSTER_SIZE = 20 * 1024 * 1024 // 20MB
-const POSTER_ASPECT_RATIOS = [
-  { ratio: 11 / 17, name: "11:17" },
+const POSTER_ASPECT_RATIO = { ratio: 4 / 5, name: "4:5" }
+
+// Image aspect ratio constants
+const IMAGE_ASPECT_RATIOS = [
+  { ratio: 1 / 1, name: "1:1" },
   { ratio: 4 / 5, name: "4:5" },
-  { ratio: 9 / 16, name: "9:16" },
-  { ratio: 8.5 / 11, name: "8.5:11" },
+  { ratio: 5 / 4, name: "5:4" },
 ]
 const ASPECT_RATIO_TOLERANCE = 0.02
 
@@ -83,10 +87,36 @@ export async function validateImageDimensions(file: File): Promise<ImageValidati
         return
       }
 
+      // Check aspect ratio - must be 1:1, 4:5, or 5:4
+      const imageAspectRatio = width / height
+      const matchingRatio = IMAGE_ASPECT_RATIOS.find(
+        ({ ratio }) => Math.abs(imageAspectRatio - ratio) <= ASPECT_RATIO_TOLERANCE,
+      )
+
+      if (!matchingRatio) {
+        // Find closest aspect ratio to suggest
+        const closest = IMAGE_ASPECT_RATIOS.reduce((prev, curr) =>
+          Math.abs(curr.ratio - imageAspectRatio) < Math.abs(prev.ratio - imageAspectRatio)
+            ? curr
+            : prev,
+        )
+
+        resolve({
+          valid: true,
+          width,
+          height,
+          needsCropping: true,
+          suggestedAspectRatio: closest.name as "1:1" | "4:5" | "5:4",
+        })
+        return
+      }
+
       resolve({
         valid: true,
         width,
         height,
+        aspectRatio: matchingRatio.name,
+        needsCropping: false,
       })
     }
 
@@ -229,7 +259,7 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Validate poster/flyer image dimensions and aspect ratio
+ * Validate poster/flyer image dimensions and aspect ratio (must be 4:5)
  */
 export async function validatePosterDimensions(file: File): Promise<ImageValidationResult> {
   // Check file size first
@@ -271,19 +301,18 @@ export async function validatePosterDimensions(file: File): Promise<ImageValidat
         return
       }
 
-      // Check aspect ratio
+      // Check aspect ratio - must be 4:5
       const imageAspectRatio = width / height
-      const matchingRatio = POSTER_ASPECT_RATIOS.find(
-        ({ ratio }) => Math.abs(imageAspectRatio - ratio) <= ASPECT_RATIO_TOLERANCE,
-      )
+      const isValidRatio =
+        Math.abs(imageAspectRatio - POSTER_ASPECT_RATIO.ratio) <= ASPECT_RATIO_TOLERANCE
 
-      if (!matchingRatio) {
-        const ratioNames = POSTER_ASPECT_RATIOS.map((r) => r.name).join(", ")
+      if (!isValidRatio) {
         resolve({
-          valid: false,
+          valid: true,
           width,
           height,
-          error: `Poster must have one of these aspect ratios: ${ratioNames}. Current aspect ratio: ${(width / height).toFixed(3)}`,
+          needsCropping: true,
+          suggestedAspectRatio: POSTER_ASPECT_RATIO.name as "4:5",
         })
         return
       }
@@ -292,7 +321,8 @@ export async function validatePosterDimensions(file: File): Promise<ImageValidat
         valid: true,
         width,
         height,
-        aspectRatio: matchingRatio.name,
+        aspectRatio: POSTER_ASPECT_RATIO.name,
+        needsCropping: false,
       })
     }
 
