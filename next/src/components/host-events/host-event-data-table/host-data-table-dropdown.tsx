@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Row } from "@tanstack/react-table"
 import { EventRow } from "./host-events-data-table"
 import Link from "next/link"
-import { api } from "@/lib/trpc/client"
+import HostEventDeleteModal from "./host-event-delete-modal"
 interface HostDataTableDropdownProps {
   row: Row<EventRow>
   handleDeleteEvent: () => void
@@ -23,42 +23,53 @@ export default function HostDataTableDropdown({
   handleDeleteEvent,
   deleteEventPending,
 }: HostDataTableDropdownProps) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="iconSm">
-          <MoreVertical />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link href={`/dashboard/event/${row.original.id}`}>
-            <EyeIcon />
-            View
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={`/dashboard/event/${row.original.id}/edit`}>
-            <EditIcon />
-            Edit
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <ShareIcon />
-          Share
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          variant="destructive"
-          onClick={(e) => {
-            e.preventDefault()
-            handleDeleteEvent()
-          }}
-          isLoading={deleteEventPending}
-        >
-          <TrashIcon />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <HostEventDeleteModal
+        event={row.original}
+        isOpen={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onDelete={async () => {
+          setIsDeleteModalOpen(false)
+          await new Promise((resolve) => setTimeout(resolve, 150))
+          handleDeleteEvent()
+        }}
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="iconSm">
+            <MoreVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/event/${row.original.id}`}>
+              <EyeIcon />
+              View
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/event/${row.original.id}/edit`}>
+              <EditIcon />
+              Edit
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <ShareIcon />
+            Share
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => {
+              setIsDeleteModalOpen(true)
+            }}
+          >
+            <TrashIcon />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   )
 }

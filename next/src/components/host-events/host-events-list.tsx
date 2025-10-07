@@ -10,6 +10,7 @@ import z from "zod"
 import { searchEventsSchema } from "@rally/schemas"
 import { api } from "@/lib/trpc/client"
 import HostEventsDataTable from "./host-event-data-table/host-events-data-table"
+import { toast } from "sonner"
 
 export const defaultFilters = {
   startDateRange: undefined,
@@ -36,9 +37,39 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
     page: 0,
     ...defaultFilters,
   })
-  const { data: events, isLoading, error } = api.event.searchEvents.useQuery(filters)
+  const utils = api.useUtils()
+  const { data: events, isLoading } = api.event.searchEvents.useQuery(filters)
   const { mutate: deleteEvent, isPending: isDeleteEventPending } =
-    api.event.deleteEvent.useMutation()
+    api.event.deleteEvent.useMutation({
+      onMutate: async (variables) => {
+        // Cancel outgoing refetches
+        await utils.event.searchEvents.cancel(filters)
+
+        // Snapshot the previous value
+        const previousEvents = utils.event.searchEvents.getData(filters)
+
+        // Optimistically update to remove the event
+        utils.event.searchEvents.setData(filters, (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            events: old.events.filter((event) => event.id !== variables.id),
+            totalCount: old.totalCount - 1,
+          }
+        })
+
+        return { previousEvents }
+      },
+      onError: (_, __, context) => {
+        if (context?.previousEvents) {
+          utils.event.searchEvents.setData(filters, context.previousEvents)
+        }
+        toast.error("Failed to delete event")
+      },
+      onSettled: () => {
+        utils.event.searchEvents.invalidate(filters)
+      },
+    })
 
   const handleFilterSubmit = (values: z.infer<typeof searchEventsSchema>) => {
     // doing it this verbose to set undefined values back to undefined

@@ -8,6 +8,7 @@ import z from "zod"
 import { formatDefaultValues } from "./event-editor-utils"
 import { api } from "@/lib/trpc/client"
 import { toast } from "sonner"
+import EVENT_EDIT_CONFIG from "./event-edit-config"
 
 const EventEditorContext = createContext<EventEditorContextType | undefined>(undefined)
 
@@ -93,7 +94,7 @@ export default function EventEditorProvider({
           console.error("[EventEditor] Autosave failed", error)
           setSaveStatus("error")
         }
-      }, 3000)
+      }, EVENT_EDIT_CONFIG.autoSaveDebounce)
     })
 
     return () => {
