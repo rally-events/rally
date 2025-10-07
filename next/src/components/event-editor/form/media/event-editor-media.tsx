@@ -104,6 +104,7 @@ export default function EventEditorMedia() {
         let width: number | undefined
         let height: number | undefined
         let duration: number | undefined
+        let posterAspectRatio: string | undefined
 
         if (isPDF) {
           const validation = await validatePDF(file)
@@ -117,6 +118,7 @@ export default function EventEditorMedia() {
           }
           width = validation.width!
           height = validation.height!
+          posterAspectRatio = validation.aspectRatio!
         } else if (isVideo) {
           const validation = await validateVideoDimensions(file)
           if (!validation.valid) {
@@ -215,6 +217,8 @@ export default function EventEditorMedia() {
           mediaType,
           fileName,
           blurhash,
+          posterAspectRatio:
+            posterAspectRatio as "11:17" | "4:5" | "9:16" | "8.5:11" | undefined,
         })
 
         setUploadProgress((prev) => ({

@@ -36,7 +36,17 @@ export function SelectSearch({
 } & Omit<React.ComponentPropsWithoutRef<typeof Button>, "onChange" | "value" | "onBlur">) {
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
-  const [allOptions, setAllOptions] = React.useState(options)
+  const [allOptions, setAllOptions] = React.useState(() => {
+    // If there's a value that doesn't exist in options, add it
+    if (value && !options.find((opt) => opt.value === value)) {
+      const label = value
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+      return [...options, { value, label }]
+    }
+    return options
+  })
 
   const createValueFromLabel = (label: string) => {
     return label.toLowerCase().replace(/\s+/g, "-")

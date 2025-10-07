@@ -1,14 +1,22 @@
 "use client"
 
+import { cn } from "@/lib/utils"
 import { useState, useEffect, ImgHTMLAttributes } from "react"
 import { Blurhash } from "react-blurhash"
 
 interface BlurHashImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string
+  aspectRatio?: string | null
   blurhash?: string | null
 }
 
-export default function BlurHashImage({ src, blurhash, alt = "", ...props }: BlurHashImageProps) {
+export default function BlurHashImage({
+  src,
+  blurhash,
+  alt = "",
+  aspectRatio,
+  ...props
+}: BlurHashImageProps) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -22,37 +30,29 @@ export default function BlurHashImage({ src, blurhash, alt = "", ...props }: Blu
   }
 
   return (
-    <div style={{ position: "relative", display: "inline-block", width: "100%", height: "100%" }}>
-      {!isLoaded && (
-        <Blurhash
-          hash={blurhash}
-          width="100%"
-          height="100%"
-          resolutionX={32}
-          resolutionY={32}
-          punch={1}
-          style={{
-            zIndex: 10,
-            opacity: isLoaded ? 0 : 1,
-            transition: "opacity 0.3s ease-in-out",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      )}
+    <div
+      style={{ aspectRatio: aspectRatio ? aspectRatio.replace(":", "/") : undefined }}
+      className={cn("relative", props.className)}
+    >
+      <Blurhash
+        hash={blurhash}
+        width="100%"
+        height="100%"
+        resolutionX={32}
+        resolutionY={32}
+        punch={1}
+        style={{
+          opacity: isLoaded ? 0 : 1,
+          transition: "opacity 0.3s ease-in-out",
+        }}
+        className="absolute inset-0 z-10 h-full w-full transition-opacity duration-300"
+      />
       <img
         src={src}
         alt={alt}
         onLoad={() => setIsLoaded(true)}
-        style={{
-          zIndex: 0,
-          width: "100%",
-          height: "100%",
-        }}
         {...props}
+        className={"absolute inset-0 z-0 h-full w-full object-cover"}
       />
     </div>
   )

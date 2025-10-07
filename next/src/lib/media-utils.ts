@@ -7,6 +7,7 @@ export interface ImageValidationResult {
   width?: number
   height?: number
   error?: string
+  aspectRatio?: string
 }
 
 export interface VideoValidationResult {
@@ -291,6 +292,7 @@ export async function validatePosterDimensions(file: File): Promise<ImageValidat
         valid: true,
         width,
         height,
+        aspectRatio: matchingRatio.name,
       })
     }
 

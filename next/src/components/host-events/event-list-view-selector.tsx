@@ -20,7 +20,6 @@ export default function EventListViewSelector({
       `button[data-view="${currentView}"]`,
     )
 
-    console.log(currentView)
     if (
       containerRef.current &&
       selectorRef.current &&

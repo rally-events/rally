@@ -22,8 +22,6 @@ export const eventTypeOptions = [
 
 export const formatOptions = ["in-person", "virtual", "hybrid"]
 
-const eventTypeEnum = z.enum(eventTypeOptions.map((option) => option.value))
-
 const formatEnum = z.enum([...formatOptions, ""])
 
 export const ageOptions = ["under-18", "18-21", "22-30", "31-40", "41-50", "51-60", "over-60"]
@@ -45,7 +43,7 @@ export const eventEditSchema = z
     id: z.string().min(1, "ID is required"),
     name: z.string().min(1, "Name is required").max(255, "Name must not exceed 255 characters"),
     description: z.string().max(3000, "Description must not exceed 3000 characters"),
-    eventType: eventTypeEnum,
+    eventType: z.string().max(255, "Event type must not exceed 255 characters"),
     format: formatEnum.refine((val) => val !== "", "Format is required"),
     usingOrganizationAddress: z.boolean().default(false),
     streetAddress: z.string().max(500, "Street address must be 500 characters or less"),
@@ -148,7 +146,7 @@ export const eventEditOptionalSchema = z
     id: z.string().min(1, "ID is required"),
     name: z.string().max(255, "Name must not exceed 255 characters").optional(),
     description: z.string().max(3000, "Description must not exceed 3000 characters").optional(),
-    eventType: eventTypeEnum.optional(),
+    eventType: z.string().max(255, "Event type must not exceed 255 characters").optional(),
     format: formatEnum.optional(),
     themes: z.array(z.string()).optional(),
     usingOrganizationAddress: z.boolean().optional(),

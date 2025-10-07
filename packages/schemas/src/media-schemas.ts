@@ -32,6 +32,7 @@ export const confirmUploadSchema = z.object({
   mediaType: z.enum(["image", "video", "poster", "pdf"]),
   fileName: z.string().min(1, "File name is required"),
   blurhash: z.string().optional(),
+  posterAspectRatio: z.enum(["11:17", "4:5", "9:16", "8.5:11"]).optional(),
 })
 
 export const getEventMediaSchema = z.object({
