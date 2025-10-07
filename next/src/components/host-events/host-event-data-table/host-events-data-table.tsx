@@ -26,6 +26,7 @@ import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight }
 import HostDataTableDropdown from "./host-data-table-dropdown"
 import { EVENT_HOST_TABLE_LIMIT } from "../host-events-list"
 import { api } from "@/lib/trpc/client"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
 type EventSearchResult = RouterOutputs["event"]["searchEvents"]["events"]
@@ -283,40 +284,52 @@ export default function HostEventsDataTable({
 
   if (isLoading) {
     return (
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                <TableHead className="w-12">
-                  <Button variant="ghost" size="iconSm" disabled>
-                    <Settings2 />
-                  </Button>
-                </TableHead>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+      <div className="space-y-4">
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  <TableHead className="w-12">
+                    <Button variant="ghost" size="iconSm" disabled>
+                      <Settings2 />
+                    </Button>
                   </TableHead>
-                ))}
-                <TableHead />
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {[...Array(EVENT_HOST_TABLE_LIMIT)].map((_, index) => (
-              <TableRow key={index}>
-                <TableCell />
-                {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex}>
-                    <div className="bg-muted h-8 animate-pulse rounded" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                  <TableHead />
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {[...Array(EVENT_HOST_TABLE_LIMIT)].map((_, index) => (
+                <TableRow key={index} className="h-[49px]">
+                  <TableCell />
+                  {columns.map((_, colIndex) => (
+                    <TableCell key={colIndex}>
+                      <div className="bg-muted h-8 animate-pulse rounded" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-sm">
+            <Skeleton className="h-5 w-42" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-24.5" />
+            <Skeleton className="h-5 w-19" />
+            <Skeleton className="h-8 w-24.5" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -396,23 +409,40 @@ export default function HostEventsDataTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  <TableCell />
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              <>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    <TableCell />
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                    <TableCell className="w-12">
+                      <HostDataTableDropdown
+                        row={row}
+                        handleDeleteEvent={() => onDeleteEvent(row.original.id)}
+                        deleteEventPending={deleteEventPending}
+                      />
                     </TableCell>
-                  ))}
-                  <TableCell className="w-12">
-                    <HostDataTableDropdown
-                      row={row}
-                      handleDeleteEvent={() => onDeleteEvent(row.original.id)}
-                      deleteEventPending={deleteEventPending}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
+                  </TableRow>
+                ))}
+                {/* Ghost rows to maintain consistent height */}
+                {Array.from({
+                  length: Math.max(0, pageSize - table.getRowModel().rows.length),
+                }).map((_, index) => (
+                  <TableRow
+                    key={`ghost-${index}`}
+                    className="pointer-events-none border-transparent"
+                  >
+                    <TableCell className="h-[49px]" />
+                    {table.getVisibleLeafColumns().map((column) => (
+                      <TableCell key={column.id} className="h-[49px]" />
+                    ))}
+                    <TableCell className="h-[49px] w-12" />
+                  </TableRow>
+                ))}
+              </>
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length + 1} className="h-24 text-center">
