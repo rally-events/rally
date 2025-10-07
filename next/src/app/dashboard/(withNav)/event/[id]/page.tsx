@@ -7,19 +7,13 @@ export default async function page({ params }: { params: Promise<{ id: string }>
     notFound()
   }
   const caller = await api()
-  const [event, user] = await Promise.all([
-    caller.event.getEvent({
-      id: id,
-      withOrganization: true,
-      withMedia: true,
-    }),
-    caller.user.getUserInfo(),
-  ])
+  const event = await caller.event.getEvent({
+    id: id,
+    withOrganization: true,
+    withMedia: true,
+  })
 
-  if (!user || !event) {
-    notFound()
-  }
-  if (user.organizationId !== event.organizationId || !event.organization) {
+  if (!event || !event.organization) {
     notFound()
   }
 
