@@ -5,7 +5,7 @@ import { Blurhash } from "react-blurhash"
 
 interface BlurHashImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string
-  blurhash?: string
+  blurhash?: string | null
 }
 
 export default function BlurHashImage({ src, blurhash, alt = "", ...props }: BlurHashImageProps) {
@@ -32,6 +32,9 @@ export default function BlurHashImage({ src, blurhash, alt = "", ...props }: Blu
           resolutionY={32}
           punch={1}
           style={{
+            zIndex: 10,
+            opacity: isLoaded ? 0 : 1,
+            transition: "opacity 0.3s ease-in-out",
             position: "absolute",
             top: 0,
             left: 0,
@@ -45,8 +48,7 @@ export default function BlurHashImage({ src, blurhash, alt = "", ...props }: Blu
         alt={alt}
         onLoad={() => setIsLoaded(true)}
         style={{
-          opacity: isLoaded ? 1 : 0,
-          transition: "opacity 0.3s ease-in-out",
+          zIndex: 0,
           width: "100%",
           height: "100%",
         }}

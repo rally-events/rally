@@ -5,6 +5,12 @@ import { usersTable } from "./user-schema"
 import { relations } from "drizzle-orm"
 
 export const mediaTypeEnum = pgEnum("media_type", ["image", "video", "poster", "pdf"])
+export const posterAspectRatioEnum = pgEnum("poster_aspect_ratio", [
+  "11:17",
+  "4:5",
+  "9:16",
+  "8.5:11",
+])
 
 export const mediaTable = pgTable("media", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -17,6 +23,7 @@ export const mediaTable = pgTable("media", {
   mimeType: text("mime_type").notNull(),
   fileName: text("file_name").notNull(),
   mediaType: mediaTypeEnum("media_type").notNull(),
+  posterAspectRatio: posterAspectRatioEnum("poster_aspect_ratio"),
   uploadedBy: uuid("uploaded_by")
     .references(() => usersTable.id)
     .notNull(),

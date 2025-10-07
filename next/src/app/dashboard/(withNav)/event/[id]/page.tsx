@@ -1,3 +1,4 @@
+import EventView from "@/components/event-view/event-view"
 import { api } from "@/lib/trpc/server"
 import { notFound } from "next/navigation"
 
@@ -17,5 +18,5 @@ export default async function page({ params }: { params: Promise<{ id: string }>
     notFound()
   }
 
-  return <div>Viewing event {id}</div>
+  return <EventView event={event} />
 }

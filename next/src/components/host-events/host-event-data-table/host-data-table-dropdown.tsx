@@ -29,9 +29,11 @@ export default function HostDataTableDropdown({ row }: HostDataTableDropdownProp
             View
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <EditIcon />
-          Edit
+        <DropdownMenuItem asChild>
+          <Link href={`/dashboard/event/${row.original.id}/edit`}>
+            <EditIcon />
+            Edit
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <ShareIcon />
