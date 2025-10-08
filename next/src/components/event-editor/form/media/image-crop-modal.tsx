@@ -49,18 +49,15 @@ function clamp(value: number, min: number, max: number) {
  * Samples 10px inward from the specified edge and averages pixels along that line
  */
 function sampleEdgeColor(
+  canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   image: HTMLImageElement,
   side: "top" | "bottom" | "left" | "right",
   sampleDepth = 10,
 ): string {
-  const canvas = document.createElement("canvas")
-  const sampleCtx = canvas.getContext("2d")
-  if (!sampleCtx) return "#ffffff"
-
   canvas.width = image.width
   canvas.height = image.height
-  sampleCtx.drawImage(image, 0, 0)
+  ctx.drawImage(image, 0, 0)
 
   const numSamples = 20 // Sample 20 points along the edge
   let r = 0,
@@ -90,7 +87,7 @@ function sampleEdgeColor(
         break
     }
 
-    const pixel = sampleCtx.getImageData(x, y, 1, 1).data
+    const pixel = ctx.getImageData(x, y, 1, 1).data
     r += pixel[0]
     g += pixel[1]
     b += pixel[2]
@@ -154,10 +151,15 @@ async function getCroppedImage(
   let rightColor = "#ffffff"
 
   if (hasBlankTop || hasBlankBottom || hasBlankLeft || hasBlankRight) {
-    if (hasBlankTop) topColor = sampleEdgeColor(ctx, image, "top")
-    if (hasBlankBottom) bottomColor = sampleEdgeColor(ctx, image, "bottom")
-    if (hasBlankLeft) leftColor = sampleEdgeColor(ctx, image, "left")
-    if (hasBlankRight) rightColor = sampleEdgeColor(ctx, image, "right")
+    // Create a temporary canvas for sampling
+    const sampleCanvas = document.createElement("canvas")
+    const sampleCtx = sampleCanvas.getContext("2d")
+    if (sampleCtx) {
+      if (hasBlankTop) topColor = sampleEdgeColor(sampleCanvas, sampleCtx, image, "top")
+      if (hasBlankBottom) bottomColor = sampleEdgeColor(sampleCanvas, sampleCtx, image, "bottom")
+      if (hasBlankLeft) leftColor = sampleEdgeColor(sampleCanvas, sampleCtx, image, "left")
+      if (hasBlankRight) rightColor = sampleEdgeColor(sampleCanvas, sampleCtx, image, "right")
+    }
   }
 
   // Fill blank areas with sampled colors
