@@ -27,6 +27,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import imageCompression from "browser-image-compression"
 import { encode } from "blurhash"
 import ImageCropModal from "./image-crop-modal"
+import { format } from "date-fns"
+import EventEditorMediaPreview from "./event-editor-media-preview"
 
 interface UploadProgress {
   fileName: string
@@ -308,22 +310,157 @@ export default function EventEditorMedia() {
       if (!cropModalState) return
 
       const { file, mediaType } = cropModalState
-
-      // Convert blob to File
-      const croppedFile = new File([croppedBlob], file.name, {
-        type: croppedBlob.type,
-        lastModified: Date.now(),
-      })
+      const progressKey = file.name
 
       // Close modal
       setCropModalState(null)
 
-      // Process the cropped file through the normal upload flow
-      setUploading(true)
-      await handleUploadFile(croppedFile, mediaType)
-      setUploading(false)
+      try {
+        setUploading(true)
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 0 },
+        }))
+
+        // Convert blob to File for compression
+        const croppedFile = new File([croppedBlob], file.name, {
+          type: croppedBlob.type,
+          lastModified: Date.now(),
+        })
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 15 },
+        }))
+
+        // Compress the cropped image to WebP and generate blurhash
+        const options = {
+          maxSizeMB: 1,
+          fileType: "image/webp" as const,
+          initialQuality: 0.9,
+        }
+
+        const compressedFile = await imageCompression(croppedFile, options)
+        const mimeType = "image/webp"
+        const fileName = file.name.replace(/\.[^/.]+$/, ".webp")
+
+        // Generate blurhash from compressed image
+        let blurhash: string | undefined
+        try {
+          blurhash = await generateBlurhash(compressedFile)
+        } catch (error) {
+          console.error("Failed to generate blurhash:", error)
+          // Continue without blurhash if generation fails
+        }
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 30 },
+        }))
+
+        // Get dimensions from the cropped blob (it already has correct dimensions)
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const image = new Image()
+          image.onload = () => resolve(image)
+          image.onerror = reject
+          image.src = URL.createObjectURL(croppedBlob)
+        })
+        const width = img.width
+        const height = img.height
+        URL.revokeObjectURL(img.src)
+
+        // Step 1: Get presigned upload URL
+        const { uploadUrl, fileKey } = await generateUploadUrl.mutateAsync({
+          eventId: event.id,
+          mimeType,
+          fileSize: compressedFile.size,
+          mediaType,
+          width,
+          height,
+          duration: undefined,
+        })
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 45 },
+        }))
+
+        // Step 2: Upload file to R2
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "PUT",
+          body: compressedFile,
+          headers: {
+            "Content-Type": mimeType,
+          },
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload failed: ${uploadResponse.statusText}`)
+        }
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 75 },
+        }))
+
+        // Step 3: Confirm upload and save metadata
+        const mediaRecord = await confirmUpload.mutateAsync({
+          eventId: event.id,
+          fileKey,
+          fileSize: compressedFile.size,
+          mimeType,
+          mediaType,
+          fileName,
+          blurhash,
+          aspectRatio: aspectRatio,
+        })
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 100 },
+        }))
+
+        setUploadedMedia((prev) => [
+          ...prev,
+          {
+            eventId: event.id,
+            mediaId: mediaRecord.id,
+            downloadUrl: URL.createObjectURL(compressedFile), // Temporary preview URL
+            media: {
+              ...mediaRecord,
+              createdAt: new Date(mediaRecord.createdAt),
+            },
+          },
+        ])
+
+        setTimeout(() => {
+          setUploadProgress((prev) => {
+            const { [progressKey]: _, ...rest } = prev
+            return rest
+          })
+        }, 500)
+
+        const typeLabel = mediaType === "poster" ? "Poster" : "Image"
+        toast.success(`${typeLabel} uploaded successfully`)
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Upload failed"
+        setUploadProgress((prev) => ({
+          ...prev,
+          [progressKey]: { fileName: file.name, progress: 0, error: errorMessage },
+        }))
+        toast.error(errorMessage)
+
+        setTimeout(() => {
+          setUploadProgress((prev) => {
+            const { [progressKey]: _, ...rest } = prev
+            return rest
+          })
+        }, 5000)
+      } finally {
+        setUploading(false)
+      }
     },
-    [cropModalState, handleUploadFile],
+    [cropModalState, event.id, generateUploadUrl, confirmUpload, setUploadedMedia],
   )
 
   const onDropImages = useCallback(
@@ -523,32 +660,14 @@ export default function EventEditorMedia() {
 
           {/* Uploaded Images Grid */}
           {images.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="flex flex-wrap gap-4">
               {images.map((media) => (
-                <div
+                <EventEditorMediaPreview
                   key={media.mediaId}
-                  className="group relative aspect-square overflow-hidden rounded-lg border"
-                >
-                  <img
-                    src={media.downloadUrl}
-                    alt={media.media.fileName}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => handleDelete(media.mediaId)}
-                      isLoading={deleteMedia.isPending}
-                      disabled={deleteMedia.isPending}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="absolute right-0 bottom-0 left-0 truncate bg-black/70 p-2 text-xs text-white">
-                    {media.media.fileName} ({formatFileSize(media.media.fileSize)})
-                  </div>
-                </div>
+                  media={media}
+                  handleDelete={handleDelete}
+                  deleteMedia={deleteMedia}
+                />
               ))}
             </div>
           )}
