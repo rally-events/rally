@@ -398,7 +398,7 @@ export default function ImageCropModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogContent noTransforms className="max-w-4xl" showCloseButton={false}>
+      <DialogContent noTransforms showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Crop Image</DialogTitle>
           <DialogDescription>
