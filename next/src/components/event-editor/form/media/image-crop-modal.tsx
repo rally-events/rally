@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState, useEffect, useRef } from "react"
 import Cropper from "react-easy-crop"
 import type { Area, Point } from "react-easy-crop"
 import {
@@ -29,6 +29,20 @@ const ASPECT_RATIOS = {
   "4:5": 4 / 5,
   "5:4": 5 / 4,
 } as const
+
+function restrictPositionCoord(
+  position: number,
+  mediaSize: number,
+  cropSize: number,
+  zoom: number,
+): number {
+  const maxPosition = (mediaSize * zoom) / 2 - cropSize / 2
+  return clamp(position, -maxPosition, maxPosition)
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
 
 /**
  * Create a cropped image blob from the crop area
@@ -114,11 +128,14 @@ export default function ImageCropModal({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<"1:1" | "4:5" | "5:4">(
     suggestedAspectRatio,
   )
-  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null)
+  const [imageSize, setImageSize] = useState<{
+    width: number
+    height: number
+    aspect: number
+  } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [minZoom, setMinZoom] = useState(0.1)
-  const [lockThreshold, setLockThreshold] = useState(1)
-
+  const cropperRef = useRef<Cropper>(null)
   // Load image when file changes
   useEffect(() => {
     if (file && open) {
@@ -129,7 +146,15 @@ export default function ImageCropModal({
         // Get image dimensions
         const img = new Image()
         img.onload = () => {
-          setImageSize({ width: img.width, height: img.height })
+          const aspect = img.width / img.height
+          setImageSize({ width: img.width, height: img.height, aspect: aspect })
+          if (aspect > ASPECT_RATIOS[selectedAspectRatio]) {
+            const previewWidth = (img.height * ASPECT_RATIOS[selectedAspectRatio]) / img.width
+            setMinZoom(previewWidth)
+          } else {
+            const previewHeight = (img.width * ASPECT_RATIOS[selectedAspectRatio]) / img.height
+            setMinZoom(previewHeight)
+          }
         }
         img.src = reader.result as string
       }
@@ -137,59 +162,78 @@ export default function ImageCropModal({
     }
   }, [file, open])
 
-  // Calculate minimum zoom based on aspect ratios
-  // This allows the user to zoom out until the shortest edge touches the crop boundary
-  useEffect(() => {
-    if (!imageSize) return
-
-    const aspect = ASPECT_RATIOS[selectedAspectRatio]
-    const imageAspect = imageSize.width / imageSize.height
-
-    // If image is wider than crop aspect, height is the limiting dimension
-    // If image is taller than crop aspect, width is the limiting dimension
-    let calculatedMinZoom: number
-
-    if (imageAspect > aspect) {
-      // Image is wider - height will touch first when zooming out
-      // We want minZoom such that image height = crop height
-      calculatedMinZoom = aspect / imageAspect
-    } else {
-      // Image is taller - width will touch first when zooming out
-      // We want minZoom such that image width = crop width
-      calculatedMinZoom = imageAspect / aspect
-    }
-
-    // Set a reasonable minimum (don't go below 10% of original size)
-    setMinZoom(Math.max(0.1, calculatedMinZoom * 0.95))
-
-    // Set the lock threshold - this is the zoom level where the image exactly fits
-    // the crop area on its shortest dimension
-    setLockThreshold(calculatedMinZoom)
-  }, [imageSize, selectedAspectRatio])
-
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels)
   }, [])
 
-  const handleCropChange = useCallback(
-    (location: Point) => {
-      // If zoom is at or below the lock threshold, force the image to be centered
-      // This prevents panning when the image doesn't fully cover the crop area
-      if (zoom <= lockThreshold) {
-        setCrop({ x: 0, y: 0 })
-      } else {
-        setCrop(location)
-      }
-    },
-    [zoom, lockThreshold],
-  )
-
-  // Reset crop position to center when zoom drops below threshold
-  useEffect(() => {
-    if (zoom <= lockThreshold) {
-      setCrop({ x: 0, y: 0 })
+  const onSelectAspectRatio = (aspectRatio: "1:1" | "4:5" | "5:4") => {
+    if (!imageSize) return
+    const aspect = ASPECT_RATIOS[aspectRatio]
+    if (imageSize.aspect > aspect) {
+      const previewWidth = (imageSize.height * aspect) / imageSize.width
+      setMinZoom(previewWidth)
+    } else {
+      const previewHeight = (imageSize.width * aspect) / imageSize.height
+      setMinZoom(previewHeight)
     }
-  }, [zoom, lockThreshold])
+
+    if (zoom < 1) {
+      setZoom(1)
+      if (imageSize.aspect > ASPECT_RATIOS[aspectRatio]) {
+        setCrop({ x: 0, y: crop.y })
+      } else {
+        setCrop({ x: crop.x, y: 0 })
+      }
+    }
+    setSelectedAspectRatio(aspectRatio)
+  }
+
+  const handleCropChange = (newCrop: Point) => {
+    const cropper = cropperRef.current
+    if (!imageSize) {
+      setCrop(newCrop)
+      return
+    }
+    if (!cropper) {
+      setCrop(newCrop)
+      return
+    }
+
+    const cropSize = cropper.state.cropSize
+    const mediaSize = cropper.mediaSize
+
+    if (!cropSize || !mediaSize) {
+      setCrop(newCrop)
+      return
+    }
+
+    const restrictedCrop = {
+      x: restrictPositionCoord(newCrop.x, mediaSize.width, cropSize.width, zoom),
+      y: restrictPositionCoord(newCrop.y, mediaSize.height, cropSize.height, zoom),
+    }
+
+    if (zoom < 1) {
+      if (imageSize.aspect < ASPECT_RATIOS[selectedAspectRatio]) {
+        restrictedCrop.x = 0
+      } else {
+        restrictedCrop.y = 0
+      }
+    }
+
+    setCrop(restrictedCrop)
+  }
+
+  const handleZoomChange = (newZoom: number) => {
+    if (!imageSize) return
+    if (newZoom < 1) {
+      if (imageSize.aspect < ASPECT_RATIOS[selectedAspectRatio]) {
+        setCrop({ x: 0, y: crop.y })
+      } else {
+        setCrop({ x: crop.x, y: 0 })
+      }
+    }
+    setZoom(newZoom)
+  }
 
   const handleSave = async () => {
     if (!croppedAreaPixels || !imageSrc || !imageSize) return
@@ -222,8 +266,6 @@ export default function ImageCropModal({
 
   if (!imageSrc) return null
 
-  const aspect = ASPECT_RATIOS[selectedAspectRatio]
-
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="max-w-4xl" showCloseButton={false}>
@@ -244,7 +286,7 @@ export default function ImageCropModal({
                 key={ratio}
                 variant={selectedAspectRatio === ratio ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedAspectRatio(ratio)}
+                onClick={() => onSelectAspectRatio(ratio)}
               >
                 {ratio}
               </Button>
@@ -255,12 +297,13 @@ export default function ImageCropModal({
         {/* Cropper */}
         <div className="relative h-[400px] w-full bg-black/5">
           <Cropper
+            ref={cropperRef}
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={aspect}
+            aspect={ASPECT_RATIOS[selectedAspectRatio]}
             onCropChange={handleCropChange}
-            onZoomChange={setZoom}
+            onZoomChange={handleZoomChange}
             onCropComplete={onCropComplete}
             minZoom={minZoom}
             maxZoom={3}
@@ -272,7 +315,7 @@ export default function ImageCropModal({
                 backgroundColor: "#f5f5f5",
               },
               cropAreaStyle: {
-                border: "2px solid #3b82f6",
+                border: "1px solid #3b82f6",
               },
             }}
           />
