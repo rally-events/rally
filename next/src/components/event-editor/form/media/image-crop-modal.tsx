@@ -193,41 +193,42 @@ async function getCroppedImage(
     sourceHeight,
   )
 
-  // Apply gradient feathering at the boundaries (30px gradient from fill color to transparent)
-  const gradientLength = 30
+  // Apply gradient feathering at the boundaries (5% of image dimension)
+  const verticalGradientLength = originalHeight * 0.05
+  const horizontalGradientLength = originalWidth * 0.05
 
   if (hasBlankTop && destY > 0) {
-    const gradient = ctx.createLinearGradient(0, destY, 0, destY + gradientLength)
+    const gradient = ctx.createLinearGradient(0, destY, 0, destY + verticalGradientLength)
     gradient.addColorStop(0, topColor)
     gradient.addColorStop(1, topColor.replace("rgb", "rgba").replace(")", ", 0)"))
     ctx.fillStyle = gradient
-    ctx.fillRect(0, destY, canvas.width, Math.min(gradientLength, sourceHeight))
+    ctx.fillRect(0, destY, canvas.width, Math.min(verticalGradientLength, sourceHeight))
   }
 
   if (hasBlankBottom && destY + sourceHeight < canvas.height) {
-    const gradientStart = destY + sourceHeight - gradientLength
+    const gradientStart = destY + sourceHeight - verticalGradientLength
     const gradient = ctx.createLinearGradient(0, gradientStart, 0, destY + sourceHeight)
     gradient.addColorStop(0, bottomColor.replace("rgb", "rgba").replace(")", ", 0)"))
     gradient.addColorStop(1, bottomColor)
     ctx.fillStyle = gradient
-    ctx.fillRect(0, Math.max(destY, gradientStart), canvas.width, gradientLength)
+    ctx.fillRect(0, Math.max(destY, gradientStart), canvas.width, verticalGradientLength)
   }
 
   if (hasBlankLeft && destX > 0) {
-    const gradient = ctx.createLinearGradient(destX, 0, destX + gradientLength, 0)
+    const gradient = ctx.createLinearGradient(destX, 0, destX + horizontalGradientLength, 0)
     gradient.addColorStop(0, leftColor)
     gradient.addColorStop(1, leftColor.replace("rgb", "rgba").replace(")", ", 0)"))
     ctx.fillStyle = gradient
-    ctx.fillRect(destX, 0, Math.min(gradientLength, sourceWidth), canvas.height)
+    ctx.fillRect(destX, 0, Math.min(horizontalGradientLength, sourceWidth), canvas.height)
   }
 
   if (hasBlankRight && destX + sourceWidth < canvas.width) {
-    const gradientStart = destX + sourceWidth - gradientLength
+    const gradientStart = destX + sourceWidth - horizontalGradientLength
     const gradient = ctx.createLinearGradient(gradientStart, 0, destX + sourceWidth, 0)
     gradient.addColorStop(0, rightColor.replace("rgb", "rgba").replace(")", ", 0)"))
     gradient.addColorStop(1, rightColor)
     ctx.fillStyle = gradient
-    ctx.fillRect(Math.max(destX, gradientStart), 0, gradientLength, canvas.height)
+    ctx.fillRect(Math.max(destX, gradientStart), 0, horizontalGradientLength, canvas.height)
   }
 
   // Convert to blob
