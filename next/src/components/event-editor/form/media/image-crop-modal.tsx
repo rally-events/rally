@@ -45,8 +45,67 @@ function clamp(value: number, min: number, max: number) {
 }
 
 /**
+ * Sample the color at the edge of an image
+ * Samples 10px inward from the specified edge and averages pixels along that line
+ */
+function sampleEdgeColor(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  side: "top" | "bottom" | "left" | "right",
+  sampleDepth = 10,
+): string {
+  const canvas = document.createElement("canvas")
+  const sampleCtx = canvas.getContext("2d")
+  if (!sampleCtx) return "#ffffff"
+
+  canvas.width = image.width
+  canvas.height = image.height
+  sampleCtx.drawImage(image, 0, 0)
+
+  const numSamples = 20 // Sample 20 points along the edge
+  let r = 0,
+    g = 0,
+    b = 0
+
+  for (let i = 0; i < numSamples; i++) {
+    let x = 0,
+      y = 0
+
+    switch (side) {
+      case "top":
+        x = Math.floor((image.width / numSamples) * i)
+        y = Math.min(sampleDepth, image.height - 1)
+        break
+      case "bottom":
+        x = Math.floor((image.width / numSamples) * i)
+        y = Math.max(0, image.height - sampleDepth - 1)
+        break
+      case "left":
+        x = Math.min(sampleDepth, image.width - 1)
+        y = Math.floor((image.height / numSamples) * i)
+        break
+      case "right":
+        x = Math.max(0, image.width - sampleDepth - 1)
+        y = Math.floor((image.height / numSamples) * i)
+        break
+    }
+
+    const pixel = sampleCtx.getImageData(x, y, 1, 1).data
+    r += pixel[0]
+    g += pixel[1]
+    b += pixel[2]
+  }
+
+  r = Math.round(r / numSamples)
+  g = Math.round(g / numSamples)
+  b = Math.round(b / numSamples)
+
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+/**
  * Create a cropped image blob from the crop area
- * Fills any transparent areas with white background
+ * Fills blank areas with sampled edge colors and applies gradient feathering
  */
 async function getCroppedImage(
   imageSrc: string,
@@ -73,10 +132,6 @@ async function getCroppedImage(
   canvas.width = pixelCrop.width
   canvas.height = pixelCrop.height
 
-  // Fill with white background first (for any transparent areas when zoomed out)
-  ctx.fillStyle = "#ffffff"
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-
   // Calculate the portion of the image to draw
   // When zoomed out, the crop area may extend beyond the image bounds
   const sourceX = Math.max(0, pixelCrop.x)
@@ -87,6 +142,43 @@ async function getCroppedImage(
   // Calculate destination position (offset if crop started before image bounds)
   const destX = Math.max(0, -pixelCrop.x)
   const destY = Math.max(0, -pixelCrop.y)
+
+  // Determine if there are blank spaces and which sides
+  const hasBlankTop = pixelCrop.y < 0
+  const hasBlankBottom = pixelCrop.y + pixelCrop.height > originalHeight
+  const hasBlankLeft = pixelCrop.x < 0
+  const hasBlankRight = pixelCrop.x + pixelCrop.width > originalWidth
+
+  // Sample edge colors if there are blank spaces
+  let topColor = "#ffffff"
+  let bottomColor = "#ffffff"
+  let leftColor = "#ffffff"
+  let rightColor = "#ffffff"
+
+  if (hasBlankTop || hasBlankBottom || hasBlankLeft || hasBlankRight) {
+    if (hasBlankTop) topColor = sampleEdgeColor(ctx, image, "top")
+    if (hasBlankBottom) bottomColor = sampleEdgeColor(ctx, image, "bottom")
+    if (hasBlankLeft) leftColor = sampleEdgeColor(ctx, image, "left")
+    if (hasBlankRight) rightColor = sampleEdgeColor(ctx, image, "right")
+  }
+
+  // Fill blank areas with sampled colors
+  if (hasBlankTop) {
+    ctx.fillStyle = topColor
+    ctx.fillRect(0, 0, canvas.width, destY)
+  }
+  if (hasBlankBottom) {
+    ctx.fillStyle = bottomColor
+    ctx.fillRect(0, destY + sourceHeight, canvas.width, canvas.height - (destY + sourceHeight))
+  }
+  if (hasBlankLeft) {
+    ctx.fillStyle = leftColor
+    ctx.fillRect(0, 0, destX, canvas.height)
+  }
+  if (hasBlankRight) {
+    ctx.fillStyle = rightColor
+    ctx.fillRect(destX + sourceWidth, 0, canvas.width - (destX + sourceWidth), canvas.height)
+  }
 
   // Draw the cropped portion of the image
   ctx.drawImage(
@@ -100,6 +192,43 @@ async function getCroppedImage(
     sourceWidth,
     sourceHeight,
   )
+
+  // Apply gradient feathering at the boundaries (30px gradient from fill color to transparent)
+  const gradientLength = 30
+
+  if (hasBlankTop && destY > 0) {
+    const gradient = ctx.createLinearGradient(0, destY, 0, destY + gradientLength)
+    gradient.addColorStop(0, topColor)
+    gradient.addColorStop(1, topColor.replace("rgb", "rgba").replace(")", ", 0)"))
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, destY, canvas.width, Math.min(gradientLength, sourceHeight))
+  }
+
+  if (hasBlankBottom && destY + sourceHeight < canvas.height) {
+    const gradientStart = destY + sourceHeight - gradientLength
+    const gradient = ctx.createLinearGradient(0, gradientStart, 0, destY + sourceHeight)
+    gradient.addColorStop(0, bottomColor.replace("rgb", "rgba").replace(")", ", 0)"))
+    gradient.addColorStop(1, bottomColor)
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, Math.max(destY, gradientStart), canvas.width, gradientLength)
+  }
+
+  if (hasBlankLeft && destX > 0) {
+    const gradient = ctx.createLinearGradient(destX, 0, destX + gradientLength, 0)
+    gradient.addColorStop(0, leftColor)
+    gradient.addColorStop(1, leftColor.replace("rgb", "rgba").replace(")", ", 0)"))
+    ctx.fillStyle = gradient
+    ctx.fillRect(destX, 0, Math.min(gradientLength, sourceWidth), canvas.height)
+  }
+
+  if (hasBlankRight && destX + sourceWidth < canvas.width) {
+    const gradientStart = destX + sourceWidth - gradientLength
+    const gradient = ctx.createLinearGradient(gradientStart, 0, destX + sourceWidth, 0)
+    gradient.addColorStop(0, rightColor.replace("rgb", "rgba").replace(")", ", 0)"))
+    gradient.addColorStop(1, rightColor)
+    ctx.fillStyle = gradient
+    ctx.fillRect(Math.max(destX, gradientStart), 0, gradientLength, canvas.height)
+  }
 
   // Convert to blob
   return new Promise((resolve, reject) => {

@@ -22,7 +22,7 @@ export interface VideoValidationResult {
 
 const MIN_DIMENSION = 250
 const MAX_DIMENSION = 8000
-const MAX_IMAGE_SIZE = 20 * 1024 * 1024 // 20MB
+const MAX_IMAGE_SIZE = 50 * 1024 * 1024 // 20MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
 const MIN_VIDEO_DURATION = 2 // seconds
 const MAX_VIDEO_DURATION = 120 // seconds (2 minutes)
