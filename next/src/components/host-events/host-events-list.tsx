@@ -11,6 +11,8 @@ import { searchEventsSchema } from "@rally/schemas"
 import { api } from "@/lib/trpc/client"
 import HostEventsDataTable from "./host-event-data-table/host-events-data-table"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { PlusIcon } from "lucide-react"
 
 export const defaultFilters = {
   startDateRange: undefined,
@@ -32,6 +34,7 @@ export const EVENT_HOST_TABLE_LIMIT = 12
 
 export default function HostEventsList({ user }: { user: UserInfo }) {
   const [currentView, setCurrentView] = useState<"grid" | "list">("grid")
+  const router = useRouter()
   const [filters, setFilters] = useState<z.infer<typeof searchEventsSchema>>({
     limit: EVENT_HOST_TABLE_LIMIT,
     page: 0,
@@ -39,6 +42,16 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
   })
   const utils = api.useUtils()
   const { data: events, isLoading } = api.event.searchEvents.useQuery(filters)
+  const { mutate: createEvent, isPending: isCreateEventPending } =
+    api.event.createEvent.useMutation({
+      onSuccess: (data) => {
+        router.push(`/dashboard/event/${data}/edit`)
+      },
+      onError: (error) => {
+        console.error("Couln't create event", error)
+        toast.error("Something went wrong, please try again later")
+      },
+    })
   const { mutate: deleteEvent, isPending: isDeleteEventPending } =
     api.event.deleteEvent.useMutation({
       onMutate: async (variables) => {
@@ -118,7 +131,9 @@ export default function HostEventsList({ user }: { user: UserInfo }) {
             handleFilterSubmit={handleFilterSubmit}
           />
           <EventListViewSelector currentView={currentView} setCurrentView={setCurrentView} />
-          <Button>Create Event</Button>
+          <Button onClick={() => createEvent()} isLoading={isCreateEventPending}>
+            Create Event <PlusIcon />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>

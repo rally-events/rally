@@ -25,7 +25,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react"
 import HostDataTableDropdown from "./host-data-table-dropdown"
 import { EVENT_HOST_TABLE_LIMIT } from "../host-events-list"
-import { api } from "@/lib/trpc/client"
 import { Skeleton } from "@/components/ui/skeleton"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
@@ -312,7 +311,7 @@ export default function HostEventsDataTable({
                   <TableCell />
                   {columns.map((_, colIndex) => (
                     <TableCell key={colIndex}>
-                      <div className="bg-muted h-8 animate-pulse rounded" />
+                      <Skeleton className="h-5 w-full" />
                     </TableCell>
                   ))}
                 </TableRow>

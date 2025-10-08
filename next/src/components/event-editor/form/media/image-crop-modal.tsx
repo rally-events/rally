@@ -32,6 +32,7 @@ const ASPECT_RATIOS = {
 
 /**
  * Create a cropped image blob from the crop area
+ * Fills any transparent areas with white background
  */
 async function getCroppedImage(
   imageSrc: string,
@@ -58,17 +59,32 @@ async function getCroppedImage(
   canvas.width = pixelCrop.width
   canvas.height = pixelCrop.height
 
-  // Draw the cropped image
+  // Fill with white background first (for any transparent areas when zoomed out)
+  ctx.fillStyle = "#ffffff"
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  // Calculate the portion of the image to draw
+  // When zoomed out, the crop area may extend beyond the image bounds
+  const sourceX = Math.max(0, pixelCrop.x)
+  const sourceY = Math.max(0, pixelCrop.y)
+  const sourceWidth = Math.min(pixelCrop.width, originalWidth - sourceX)
+  const sourceHeight = Math.min(pixelCrop.height, originalHeight - sourceY)
+
+  // Calculate destination position (offset if crop started before image bounds)
+  const destX = Math.max(0, -pixelCrop.x)
+  const destY = Math.max(0, -pixelCrop.y)
+
+  // Draw the cropped portion of the image
   ctx.drawImage(
     image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    destX,
+    destY,
+    sourceWidth,
+    sourceHeight,
   )
 
   // Convert to blob
@@ -100,6 +116,7 @@ export default function ImageCropModal({
   )
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [minZoom, setMinZoom] = useState(0.1)
 
   // Load image when file changes
   useEffect(() => {
@@ -118,6 +135,32 @@ export default function ImageCropModal({
       reader.readAsDataURL(file)
     }
   }, [file, open])
+
+  // Calculate minimum zoom based on aspect ratios
+  // This allows the user to zoom out until the shortest edge touches the crop boundary
+  useEffect(() => {
+    if (!imageSize) return
+
+    const aspect = ASPECT_RATIOS[selectedAspectRatio]
+    const imageAspect = imageSize.width / imageSize.height
+
+    // If image is wider than crop aspect, height is the limiting dimension
+    // If image is taller than crop aspect, width is the limiting dimension
+    let calculatedMinZoom: number
+
+    if (imageAspect > aspect) {
+      // Image is wider - height will touch first when zooming out
+      // We want minZoom such that image height = crop height
+      calculatedMinZoom = aspect / imageAspect
+    } else {
+      // Image is taller - width will touch first when zooming out
+      // We want minZoom such that image width = crop width
+      calculatedMinZoom = imageAspect / aspect
+    }
+
+    // Set a reasonable minimum (don't go below 10% of original size)
+    setMinZoom(Math.max(0.1, calculatedMinZoom * 0.95))
+  }, [imageSize, selectedAspectRatio])
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels)
@@ -194,7 +237,10 @@ export default function ImageCropModal({
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropComplete}
+            minZoom={minZoom}
+            maxZoom={3}
             objectFit="contain"
+            restrictPosition={false}
             showGrid={true}
             style={{
               containerStyle: {
@@ -214,8 +260,8 @@ export default function ImageCropModal({
             <span className="text-muted-foreground">{Math.round(zoom * 100)}%</span>
           </div>
           <Slider
-            min={1}
-            max={1.5}
+            min={minZoom}
+            max={3}
             step={0.01}
             value={[zoom]}
             onValueChange={(value) => setZoom(value[0])}
