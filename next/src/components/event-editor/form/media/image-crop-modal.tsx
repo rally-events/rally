@@ -117,6 +117,7 @@ export default function ImageCropModal({
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [minZoom, setMinZoom] = useState(0.1)
+  const [lockThreshold, setLockThreshold] = useState(1)
 
   // Load image when file changes
   useEffect(() => {
@@ -160,11 +161,35 @@ export default function ImageCropModal({
 
     // Set a reasonable minimum (don't go below 10% of original size)
     setMinZoom(Math.max(0.1, calculatedMinZoom * 0.95))
+
+    // Set the lock threshold - this is the zoom level where the image exactly fits
+    // the crop area on its shortest dimension
+    setLockThreshold(calculatedMinZoom)
   }, [imageSize, selectedAspectRatio])
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels)
   }, [])
+
+  const handleCropChange = useCallback(
+    (location: Point) => {
+      // If zoom is at or below the lock threshold, force the image to be centered
+      // This prevents panning when the image doesn't fully cover the crop area
+      if (zoom <= lockThreshold) {
+        setCrop({ x: 0, y: 0 })
+      } else {
+        setCrop(location)
+      }
+    },
+    [zoom, lockThreshold],
+  )
+
+  // Reset crop position to center when zoom drops below threshold
+  useEffect(() => {
+    if (zoom <= lockThreshold) {
+      setCrop({ x: 0, y: 0 })
+    }
+  }, [zoom, lockThreshold])
 
   const handleSave = async () => {
     if (!croppedAreaPixels || !imageSrc || !imageSize) return
@@ -234,7 +259,7 @@ export default function ImageCropModal({
             crop={crop}
             zoom={zoom}
             aspect={aspect}
-            onCropChange={setCrop}
+            onCropChange={handleCropChange}
             onZoomChange={setZoom}
             onCropComplete={onCropComplete}
             minZoom={minZoom}
