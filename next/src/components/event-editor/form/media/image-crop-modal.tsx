@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import Cropper from "react-easy-crop"
 import type { Area, Point } from "react-easy-crop"
 import {
@@ -132,8 +132,6 @@ async function getCroppedImage(
   canvas.width = pixelCrop.width
   canvas.height = pixelCrop.height
 
-  // Calculate the portion of the image to draw
-  // When zoomed out, the crop area may extend beyond the image bounds
   const sourceX = Math.max(0, pixelCrop.x)
   const sourceY = Math.max(0, pixelCrop.y)
   const sourceWidth = Math.min(pixelCrop.width, originalWidth - sourceX)
@@ -180,7 +178,6 @@ async function getCroppedImage(
     ctx.fillRect(destX + sourceWidth, 0, canvas.width - (destX + sourceWidth), canvas.height)
   }
 
-  // Draw the cropped portion of the image
   ctx.drawImage(
     image,
     sourceX,
@@ -231,7 +228,6 @@ async function getCroppedImage(
     ctx.fillRect(Math.max(destX, gradientStart), 0, horizontalGradientLength, canvas.height)
   }
 
-  // Convert to blob
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) {
@@ -258,7 +254,7 @@ export default function ImageCropModal({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<"1:1" | "4:5" | "5:4">(
     suggestedAspectRatio,
   )
-  const [imageSize, setImageSize] = useState<{
+  const [imageData, setImageData] = useState<{
     width: number
     height: number
     aspect: number
@@ -266,18 +262,18 @@ export default function ImageCropModal({
   const [isProcessing, setIsProcessing] = useState(false)
   const [minZoom, setMinZoom] = useState(0.1)
   const cropperRef = useRef<Cropper>(null)
+
   // Load image when file changes
   useEffect(() => {
     if (file && open) {
       const reader = new FileReader()
       reader.onload = () => {
         setImageSrc(reader.result as string)
-
         // Get image dimensions
         const img = new Image()
-        img.onload = () => {
+        img.onload = async () => {
           const aspect = img.width / img.height
-          setImageSize({ width: img.width, height: img.height, aspect: aspect })
+          setImageData({ width: img.width, height: img.height, aspect: aspect })
           if (aspect > ASPECT_RATIOS[selectedAspectRatio]) {
             const previewWidth = (img.height * ASPECT_RATIOS[selectedAspectRatio]) / img.width
             setMinZoom(previewWidth)
@@ -285,6 +281,9 @@ export default function ImageCropModal({
             const previewHeight = (img.width * ASPECT_RATIOS[selectedAspectRatio]) / img.height
             setMinZoom(previewHeight)
           }
+          setZoom(1)
+          setCrop({ x: 0, y: 0 })
+          setSelectedAspectRatio(selectedAspectRatio)
         }
         img.src = reader.result as string
       }
@@ -292,24 +291,24 @@ export default function ImageCropModal({
     }
   }, [file, open])
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+  const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels)
-  }, [])
+  }
 
   const onSelectAspectRatio = (aspectRatio: "1:1" | "4:5" | "5:4") => {
-    if (!imageSize) return
+    if (!imageData) return
     const aspect = ASPECT_RATIOS[aspectRatio]
-    if (imageSize.aspect > aspect) {
-      const previewWidth = (imageSize.height * aspect) / imageSize.width
+    if (imageData.aspect > aspect) {
+      const previewWidth = (imageData.height * aspect) / imageData.width
       setMinZoom(previewWidth)
     } else {
-      const previewHeight = (imageSize.width * aspect) / imageSize.height
+      const previewHeight = (imageData.width * aspect) / imageData.height
       setMinZoom(previewHeight)
     }
 
     if (zoom < 1) {
       setZoom(1)
-      if (imageSize.aspect > ASPECT_RATIOS[aspectRatio]) {
+      if (imageData.aspect > ASPECT_RATIOS[aspectRatio]) {
         setCrop({ x: 0, y: crop.y })
       } else {
         setCrop({ x: crop.x, y: 0 })
@@ -320,7 +319,7 @@ export default function ImageCropModal({
 
   const handleCropChange = (newCrop: Point) => {
     const cropper = cropperRef.current
-    if (!imageSize) {
+    if (!imageData) {
       setCrop(newCrop)
       return
     }
@@ -328,8 +327,7 @@ export default function ImageCropModal({
       setCrop(newCrop)
       return
     }
-
-    const cropSize = cropper.state.cropSize
+    const cropSize = cropper.state.cropSize!
     const mediaSize = cropper.mediaSize
 
     if (!cropSize || !mediaSize) {
@@ -343,7 +341,7 @@ export default function ImageCropModal({
     }
 
     if (zoom < 1) {
-      if (imageSize.aspect < ASPECT_RATIOS[selectedAspectRatio]) {
+      if (imageData.aspect < ASPECT_RATIOS[selectedAspectRatio]) {
         restrictedCrop.x = 0
       } else {
         restrictedCrop.y = 0
@@ -354,9 +352,9 @@ export default function ImageCropModal({
   }
 
   const handleZoomChange = (newZoom: number) => {
-    if (!imageSize) return
+    if (!imageData) return
     if (newZoom < 1) {
-      if (imageSize.aspect < ASPECT_RATIOS[selectedAspectRatio]) {
+      if (imageData.aspect < ASPECT_RATIOS[selectedAspectRatio]) {
         setCrop({ x: 0, y: crop.y })
       } else {
         setCrop({ x: crop.x, y: 0 })
@@ -366,15 +364,15 @@ export default function ImageCropModal({
   }
 
   const handleSave = async () => {
-    if (!croppedAreaPixels || !imageSrc || !imageSize) return
+    if (!croppedAreaPixels || !imageSrc || !imageData) return
 
     try {
       setIsProcessing(true)
       const croppedBlob = await getCroppedImage(
         imageSrc,
         croppedAreaPixels,
-        imageSize.width,
-        imageSize.height,
+        imageData.width,
+        imageData.height,
       )
       onSave(croppedBlob, selectedAspectRatio)
       handleClose()
@@ -390,7 +388,7 @@ export default function ImageCropModal({
     setCrop({ x: 0, y: 0 })
     setZoom(1)
     setCroppedAreaPixels(null)
-    setImageSize(null)
+    setImageData(null)
     onClose()
   }
 
@@ -398,7 +396,7 @@ export default function ImageCropModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogContent className="max-w-4xl" showCloseButton={false}>
+      <DialogContent noTransforms className="max-w-4xl" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Crop Image</DialogTitle>
           <DialogDescription>
