@@ -798,30 +798,12 @@ export default function EventEditorMedia() {
             </>
           ) : (
             /* Uploaded Poster */
-            <div className="relative overflow-hidden rounded-lg border">
-              <img
-                src={poster.downloadUrl}
-                alt={poster.media.fileName}
-                className="mx-auto max-h-96 object-contain"
-              />
-              <div className="bg-muted flex items-center justify-between p-4">
-                <div>
-                  <p className="text-sm font-medium">{poster.media.fileName}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {formatFileSize(poster.media.fileSize)}
-                  </p>
-                </div>
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  onClick={() => handleDelete(poster.mediaId)}
-                  disabled={deleteMedia.isPending}
-                  isLoading={deleteMedia.isPending}
-                >
-                  <X />
-                </Button>
-              </div>
-            </div>
+            <EventEditorMediaPreview
+              media={poster}
+              handleDelete={handleDelete}
+              deleteMedia={deleteMedia}
+              isPoster={true}
+            />
           )}
         </CardContent>
       </Card>

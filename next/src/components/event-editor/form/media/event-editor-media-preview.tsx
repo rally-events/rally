@@ -18,12 +18,14 @@ interface EventEditorMediaPreviewProps {
   deleteMedia: {
     isPending: boolean
   }
+  isPoster?: boolean
 }
 
 export default function EventEditorMediaPreview({
   media,
   handleDelete,
   deleteMedia,
+  isPoster = false,
 }: EventEditorMediaPreviewProps) {
   const [isPreviewingImage, setIsPreviewingImage] = useState(false)
   return (
@@ -45,32 +47,34 @@ export default function EventEditorMediaPreview({
           />
         </DialogContent>
       </Dialog>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col items-center gap-1">
         <div className="group relative cursor-pointer" onClick={() => setIsPreviewingImage(true)}>
           <img
             src={media.downloadUrl}
             alt={media.media.fileName}
             style={{ aspectRatio: media.media.aspectRatio?.replace(":", "/") || "1/1" }}
-            className="h-full max-h-44 rounded-md object-cover"
+            className={`h-full rounded-md object-cover ${isPoster ? "max-w-64" : "max-h-44"}`}
           />
           <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
             <ZoomInIcon className="size-8 text-white" />
           </div>
         </div>
 
-        <div className="px-auto flex items-center justify-between gap-1 px-1">
+        <div className="flex items-center justify-between gap-1 px-1">
           <div className="flex flex-col">
-            <span className="line-clamp-1 max-w-24 text-sm leading-tight text-ellipsis">
-              {media.media.fileName.replace(".webp", "")}
-              {media.media.fileName.replace(".webp", "")}
-              {media.media.fileName.replace(".webp", "")}
-              {media.media.fileName.replace(".webp", "")}
+            <span
+              className={`text-ellipsis, line-clamp-1 text-sm leading-tight ${isPoster ? "max-w-52" : "max-w-24"}`}
+            >
               {media.media.fileName.replace(".webp", "")}
             </span>
-            <span className="text-muted-foreground line-clamp-1 max-w-32 text-xs leading-tight text-ellipsis">
+            <span
+              className={`text-muted-foreground line-clamp-1 ${isPoster ? "max-w-52" : "max-w-24"} text-xs leading-tight text-ellipsis`}
+            >
               {format(media.media.createdAt, "MMM d, yyyy")}
             </span>
-            <span className="text-muted-foreground line-clamp-1 max-w-32 text-xs leading-tight text-ellipsis">
+            <span
+              className={`text-muted-foreground line-clamp-1 ${isPoster ? "max-w-52" : "max-w-24"} text-xs leading-tight text-ellipsis`}
+            >
               {formatFileSize(media.media.fileSize)}
             </span>
           </div>
