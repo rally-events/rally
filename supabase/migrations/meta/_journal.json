@@ -19,85 +19,8 @@
     {
       "idx": 2,
       "version": "7",
-      "when": 1759787672433,
-      "tag": "0002_flippant_vargas",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1759797495504,
-      "tag": "0003_true_junta",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1759799333275,
-      "tag": "0004_fast_black_tom",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1759875983575,
-      "tag": "0005_mushy_kabuki",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1759879602048,
-      "tag": "0006_dazzling_human_torch",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1760529738757,
-      "tag": "0007_tidy_black_bird",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1760529907134,
-      "tag": "0008_living_magma",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1760530765706,
-      "tag": "0009_giant_shiva",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1760531300882,
-      "tag": "0010_tense_nightmare",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1760532225451,
-      "tag": "0011_early_jimmy_woo",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1760538723880,
-      "tag": "0012_same_sersi",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1760540843812,
-      "tag": "0013_lyrical_mole_man",
+      "when": 1760544705841,
+      "tag": "0002_freezing_nicolaos",
       "breakpoints": true
     }
   ]
