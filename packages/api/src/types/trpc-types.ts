@@ -7,9 +7,12 @@ import {
   usersTable,
   InferSelectModel,
   eventsMediaTable,
+  notificationsTable,
 } from "@rally/db"
 import { SupabaseUserMetadata } from "../user/getUserInfo"
 import searchEvents from "../events/searchEvents"
+import z from "zod"
+import { getUserInfoSchema } from "@rally/schemas"
 
 export type EventSearchInfo = NonNullable<Awaited<ReturnType<typeof searchEvents>>>
 
@@ -28,6 +31,8 @@ export type BaseUserInfo = Omit<
   "organization" | "organizationMembership" | "supabaseMetadata"
 >
 
+export type NotificationInfo = InferSelectModel<typeof notificationsTable>
+
 // Event type parameters interface
 export interface EventInfoParams {
   withOrganization?: boolean
@@ -36,10 +41,8 @@ export interface EventInfoParams {
 }
 
 // User type parameters interface
-export interface UserInfoParams {
-  withOrganization?: boolean
-  withOrganizationMembership?: boolean
-}
+
+type UserInfoParams = z.infer<typeof getUserInfoSchema>
 
 // Conditional EventInfo type that includes properties based on parameters
 export type EventInfo<T extends EventInfoParams = {}> = BaseEventInfo &
@@ -58,6 +61,7 @@ export type UserInfo<T extends UserInfoParams = {}> = BaseUserInfo &
     : {}) &
   (T extends { withOrganizationMembership: true }
     ? { organizationMembership: InferSelectModel<typeof organizationMembersTable> | null }
-    : {}) & {
+    : {}) &
+  (T extends { withNotifications: true } ? { notifications: NotificationInfo[] } : {}) & {
     supabaseMetadata: SupabaseUserMetadata
   }

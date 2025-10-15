@@ -1,21 +1,54 @@
 import React from "react"
-import { EventInfo } from "@rally/api"
-import { CalendarIcon } from "lucide-react"
+import { EventInfo, UserInfo } from "@rally/api"
 import { format } from "date-fns"
+import EventViewSponsorButtons from "../sponsor/event-view-sponsor-buttons"
+import { api } from "@/lib/trpc/server"
+import EventViewSponsorAlreadyRequested from "../sponsor/event-view-sponsor-already-requested"
 
 export default function EventViewHeader({
   event,
+  user,
 }: {
   event: EventInfo<{ withOrganization: true; withMedia: true }>
+  user: UserInfo
 }) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col">
-        <h1 className="text-4xl font-bold">{event.name}</h1>
-        <EventViewDateTime startDatetime={event.startDatetime} endDatetime={event.endDatetime} />
+    <section className="pt-8">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-bold">{event.name}</h1>
+          <EventViewDateTime startDatetime={event.startDatetime} endDatetime={event.endDatetime} />
+        </div>
+        {user.supabaseMetadata.organization_type === "sponsor" && (
+          <EventSponsorButtonFetch event={event} />
+        )}
       </div>
-    </div>
+    </section>
   )
+}
+
+const EventSponsorButtonFetch = async ({
+  event,
+}: {
+  event: EventInfo<{ withOrganization: true; withMedia: true }>
+}) => {
+  const caller = await api()
+  const existingSponsorRequests = await caller.sponsorship.getSponsorRequests({
+    eventId: event.id,
+  })
+  if (existingSponsorRequests.length === 0) {
+    return <EventViewSponsorButtons event={event} />
+  }
+
+  // check if all sponsor requests are either rejected or approved
+  const allRejectedOrApproved = existingSponsorRequests.every(
+    (sponsorRequest) =>
+      sponsorRequest.status === "rejected" || sponsorRequest.status === "approved",
+  )
+  if (allRejectedOrApproved) {
+    return <EventViewSponsorButtons event={event} />
+  }
+  return <EventViewSponsorAlreadyRequested event={event} />
 }
 
 const EventViewDateTime = ({

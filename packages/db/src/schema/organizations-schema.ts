@@ -1,7 +1,8 @@
 import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
-import { usersTable } from "./user-schema"
+import { usersTable } from "./users-schema"
 import { eventsTable } from "./events-schema"
+import { notificationsTable } from "./notifications-schema"
 
 // Enums
 export const organizationTypeEnum = pgEnum("organization_type", ["host", "sponsor"])
@@ -84,6 +85,7 @@ export const organizationsRelations = relations(organizationsTable, ({ one, many
   members: many(usersTable),
   memberships: many(organizationMembersTable),
   events: many(eventsTable),
+  notifications: many(notificationsTable),
 }))
 
 export const hostOrganizationsRelations = relations(hostOrganizationsTable, ({ one }) => ({

@@ -4,6 +4,8 @@ import { addressRouter } from "./address-router"
 import { organizationRouter } from "./organization-router"
 import { eventRouter } from "./event-router"
 import { mediaRouter } from "./media-router"
+import { sponsorshipRouter } from "./sponsorship-router"
+import { notificationRouter } from "./notification-router"
 
 export const appRouter = router({
   user: userRouter,
@@ -11,6 +13,8 @@ export const appRouter = router({
   organization: organizationRouter,
   event: eventRouter,
   media: mediaRouter,
+  sponsorship: sponsorshipRouter,
+  notification: notificationRouter,
 })
 
 export type AppRouter = typeof appRouter

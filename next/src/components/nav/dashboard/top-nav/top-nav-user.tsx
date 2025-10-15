@@ -14,11 +14,29 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { createClient } from "@/utils/supabase/client"
 import { UserInfo } from "@rally/api"
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, LogOutIcon } from "lucide-react"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function TopNavUser({ user }: { user: UserInfo }) {
   const { theme, setTheme } = useTheme()
+  const supabase = createClient()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const signOut = async () => {
+    setIsLoading(true)
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      toast.error(error.message)
+    } else {
+      router.push("/sign-in")
+    }
+    setIsLoading(false)
+  }
 
   return (
     <DropdownMenu>
@@ -63,7 +81,10 @@ export default function TopNavUser({ user }: { user: UserInfo }) {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuItem>Account Settings</DropdownMenuItem>
-        <DropdownMenuItem>Logout</DropdownMenuItem>
+        <DropdownMenuItem isLoading={isLoading} onClick={signOut} variant="destructive">
+          <LogOutIcon />
+          Logout
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -1,7 +1,8 @@
 // this is temp, just for scaffolding
-import { organizationMembersTable, organizationsTable } from "./organization-schema"
+import { organizationMembersTable, organizationsTable } from "./organizations-schema"
 import { pgTable, uuid, text, timestamp, pgSchema } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { notificationsTable } from "./notifications-schema"
 
 const authSchema = pgSchema("auth")
 export const users = authSchema.table("users", {
@@ -26,7 +27,7 @@ export const emailOTPTable = pgTable("email_otp", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
-export const usersRelations = relations(usersTable, ({ one }) => ({
+export const usersRelations = relations(usersTable, ({ one, many }) => ({
   organization: one(organizationsTable, {
     fields: [usersTable.organizationId],
     references: [organizationsTable.id],
@@ -35,4 +36,5 @@ export const usersRelations = relations(usersTable, ({ one }) => ({
     fields: [usersTable.id],
     references: [organizationMembersTable.userId],
   }),
+  notifications: many(notificationsTable),
 }))

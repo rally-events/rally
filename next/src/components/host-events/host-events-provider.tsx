@@ -1,7 +1,7 @@
 "use client"
 
 import { UserInfo } from "@rally/api"
-import { createContext, ReactNode, useContext, useState } from "react"
+import { createContext, ReactNode, useContext, useMemo, useState } from "react"
 import { api } from "@/lib/trpc/client"
 import { searchEventsSchema } from "@rally/schemas"
 import { z } from "zod"
@@ -46,6 +46,15 @@ interface HostEventsContextType {
   calendarEvents: EventRow[]
   calendarEventsLoading: boolean
 
+  // Stats data
+  stats: {
+    totalCount: number
+    upcomingCount: number
+  }
+  statsLoading: boolean
+  upcomingEvents: EventRow[]
+  upcomingEventsLoading: boolean
+
   // Mutations and handlers
   createEvent: () => void
   isCreateEventPending: boolean
@@ -84,26 +93,44 @@ export default function HostEventsProvider({ children, user }: HostEventsProvide
   // Calendar date state
   const [currentDate, setCurrentDate] = useState(new Date())
 
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
-  const firstDayOfMonth = new Date(year, month, 1)
-  const lastDayOfMonth = new Date(year, month + 1, 0)
+  const calendarData = useMemo(() => {
+    const currentYear = new Date().getFullYear()
+    const minDate = new Date(currentYear - 5, 0, 1)
+    const maxDate = new Date(currentYear + 5, 11, 31)
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    return {
+      organizationId: user.organizationId!,
+      startDateRange: new Date(year, month, 1),
+      endDateRange: new Date(year, month + 1, 0),
+      canGoBack: new Date(year, month - 1, 1) >= minDate,
+      canGoForward: new Date(year, month + 1, 1) <= maxDate,
+    }
+  }, [currentDate])
 
-  // Calendar date range limits
-  const currentYear = new Date().getFullYear()
-  const minDate = new Date(currentYear - 5, 0, 1)
-  const maxDate = new Date(currentYear + 5, 11, 31)
-  const canGoBack = new Date(year, month - 1, 1) >= minDate
-  const canGoForward = new Date(year, month + 1, 1) <= maxDate
+  const upcomingData = useMemo(() => {
+    return {
+      organizationId: user.organizationId!,
+      startDateRange: new Date(),
+      sortBy: "startDatetime" as any,
+      sortOrder: "asc" as any,
+      limit: 2,
+    }
+  }, [user.organizationId])
 
   // Queries
   const utils = api.useUtils()
-  const { data: listEventsData, isLoading: listEventsLoading } = api.event.searchEvents.useQuery(filters)
-  const { data: calendarEventsData, isLoading: calendarEventsLoading } = api.event.searchEvents.useQuery({
-    organizationId: user.organizationId!,
-    startDateRange: firstDayOfMonth,
-    endDateRange: lastDayOfMonth,
-  })
+  const { data: listEventsData, isLoading: listEventsLoading } =
+    api.event.searchEvents.useQuery(filters)
+  const { data: calendarEventsData, isLoading: calendarEventsLoading } =
+    api.event.searchEvents.useQuery({
+      organizationId: user.organizationId!,
+      startDateRange: calendarData.startDateRange,
+      endDateRange: calendarData.endDateRange,
+    })
+  const { data: statsData, isLoading: statsLoading } = api.event.getEventStats.useQuery()
+  const { data: upcomingEventsData, isLoading: upcomingEventsLoading } =
+    api.event.searchEvents.useQuery(upcomingData)
 
   // Mutations
   const { mutate: createEventMutation, isPending: isCreateEventPending } =
@@ -120,8 +147,8 @@ export default function HostEventsProvider({ children, user }: HostEventsProvide
   const { mutate: deleteEventMutation, isPending: isDeleteEventPending } =
     api.event.deleteEvent.useMutation({
       onMutate: async (variables) => {
-        // Cancel outgoing refetches
-        await utils.event.searchEvents.cancel(filters)
+        // Cancel outgoing refetches for all searchEvents queries
+        await utils.event.searchEvents.cancel()
 
         // Snapshot the previous value
         const previousEvents = utils.event.searchEvents.getData(filters)
@@ -145,7 +172,10 @@ export default function HostEventsProvider({ children, user }: HostEventsProvide
         toast.error("Failed to delete event")
       },
       onSettled: () => {
-        utils.event.searchEvents.invalidate(filters)
+        // Invalidate all searchEvents queries instead of just the filtered one
+        utils.event.searchEvents.invalidate()
+        // Also invalidate stats since total count changed
+        utils.event.getEventStats.invalidate()
       },
     })
 
@@ -192,14 +222,14 @@ export default function HostEventsProvider({ children, user }: HostEventsProvide
 
   // Calendar navigation
   const goToPreviousMonth = () => {
-    if (canGoBack) {
-      setCurrentDate(new Date(year, month - 1, 1))
+    if (calendarData.canGoBack) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
     }
   }
 
   const goToNextMonth = () => {
-    if (canGoForward) {
-      setCurrentDate(new Date(year, month + 1, 1))
+    if (calendarData.canGoForward) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
     }
   }
 
@@ -221,6 +251,15 @@ export default function HostEventsProvider({ children, user }: HostEventsProvide
     calendarEvents: calendarEventsData?.events ?? [],
     calendarEventsLoading,
 
+    // Stats data
+    stats: {
+      totalCount: statsData?.totalCount ?? 0,
+      upcomingCount: statsData?.upcomingCount ?? 0,
+    },
+    statsLoading,
+    upcomingEvents: upcomingEventsData?.events ?? [],
+    upcomingEventsLoading,
+
     // Mutations and handlers
     createEvent,
     isCreateEventPending,
@@ -234,8 +273,8 @@ export default function HostEventsProvider({ children, user }: HostEventsProvide
     goToPreviousMonth,
     goToNextMonth,
     goToToday,
-    canGoBack,
-    canGoForward,
+    canGoBack: calendarData.canGoBack,
+    canGoForward: calendarData.canGoForward,
   }
 
   return <HostEventsContext.Provider value={value}>{children}</HostEventsContext.Provider>

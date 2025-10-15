@@ -1,7 +1,8 @@
-import { db, eq, usersTable } from "@rally/db"
+import { db, eq, notificationsTable, or, usersTable } from "@rally/db"
 import { TRPCContext } from "../context"
 import { getUserInfoSchema } from "@rally/schemas"
 import { z } from "zod"
+import { NotificationInfo } from "../types/trpc-types"
 
 export type SupabaseUserMetadata = {
   sub: string
@@ -36,9 +37,20 @@ export default async function getUserInfo(
     return null
   }
 
+  let notifications: NotificationInfo[] = []
+  if (input.withNotifications) {
+    notifications = await db.query.notificationsTable.findMany({
+      where: or(
+        eq(notificationsTable.userId, user.id),
+        eq(notificationsTable.organizationId, user.organizationId || ""),
+      ),
+    })
+  }
+
   let returnedUser = {
     ...user,
     supabaseMetadata: ctx.user.user_metadata as SupabaseUserMetadata,
+    notifications,
   }
 
   return returnedUser

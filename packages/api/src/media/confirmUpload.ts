@@ -8,8 +8,7 @@ export default async function confirmUpload(
   ctx: Context,
   input: z.infer<typeof confirmUploadSchema>,
 ) {
-  const { eventId, fileKey, fileSize, mimeType, mediaType, fileName, blurhash, aspectRatio } =
-    input
+  const { eventId, fileKey, fileSize, mimeType, mediaType, fileName, blurhash, aspectRatio } = input
 
   if (!ctx.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" })

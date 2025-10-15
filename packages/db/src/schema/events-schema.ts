@@ -10,10 +10,10 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core"
-import { organizationsTable } from "./organization-schema"
+import { organizationsTable } from "./organizations-schema"
 import { relations } from "drizzle-orm"
 import { mediaTable } from "./media-schema"
-import { usersTable } from "./user-schema"
+import { usersTable } from "./users-schema"
 import { ageOptions, formatOptions } from "@rally/schemas"
 
 export const formatEnum = pgEnum("format_enum", formatOptions as [string, ...string[]])
@@ -23,7 +23,9 @@ export const eventsTable = pgTable("events", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  organizationId: uuid("organization_id").references(() => organizationsTable.id),
+  organizationId: uuid("organization_id")
+    .references(() => organizationsTable.id, { onDelete: "cascade" })
+    .notNull(),
   eventType: text("event_type"),
   format: formatEnum("format"),
   usingOrganizationAddress: boolean("using_organization_address").default(false),
@@ -55,9 +57,7 @@ export const eventsTable = pgTable("events", {
   isTicketed: boolean("is_ticketed").default(false),
   ticketCost: decimal("ticket_cost"),
 
-  updatedBy: uuid("updated_by")
-    .references(() => usersTable.id)
-    .notNull(),
+  updatedBy: uuid("updated_by").references(() => usersTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })

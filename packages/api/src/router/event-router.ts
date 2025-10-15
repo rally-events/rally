@@ -10,6 +10,7 @@ import updateEvent from "../events/updateEvent"
 import getEvent from "../events/getEvent"
 import searchEvents from "../events/searchEvents"
 import deleteEvent from "../events/deleteEvent"
+import getEventStats from "../events/getEventStats"
 
 export const eventRouter = router({
   createEvent: protectedProcedure.mutation(async ({ ctx }) => await createEvent(ctx)),
@@ -26,4 +27,5 @@ export const eventRouter = router({
   deleteEvent: protectedProcedure
     .input(deleteEventSchema)
     .mutation(async ({ ctx, input }) => await deleteEvent(ctx, input)),
+  getEventStats: protectedProcedure.query(async ({ ctx }) => await getEventStats(ctx)),
 })

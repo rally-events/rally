@@ -8,15 +8,27 @@ export default async function page({ params }: { params: Promise<{ id: string }>
     notFound()
   }
   const caller = await api()
-  const event = await caller.event.getEvent({
-    id: id,
-    withOrganization: true,
-    withMedia: true,
-  })
+  const [event, user] = await Promise.all([
+    caller.event.getEvent({
+      id: id,
+      withOrganization: true,
+      withMedia: true,
+    }),
+    caller.user.getUserInfo(),
+  ])
 
   if (!event || !event.organization) {
     notFound()
   }
 
-  return <EventView event={event} />
+  if (!user) {
+    // TODO: redirect to public event view outside of dashboard
+    notFound()
+  }
+
+  if (!user.supabaseMetadata.organization_type) {
+    notFound()
+  }
+
+  return <EventView event={event} user={user} />
 }

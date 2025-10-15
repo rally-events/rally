@@ -1,7 +1,7 @@
 import { integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { eventsMediaTable } from "./events-schema"
-import { organizationsTable } from "./organization-schema"
-import { usersTable } from "./user-schema"
+import { organizationsTable } from "./organizations-schema"
+import { usersTable } from "./users-schema"
 import { relations } from "drizzle-orm"
 
 export const mediaTypeEnum = pgEnum("media_type", ["image", "video", "poster", "pdf"])

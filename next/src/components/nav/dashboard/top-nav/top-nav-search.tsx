@@ -36,29 +36,28 @@ export default function TopNavSearch() {
 
   return (
     <>
-      <div className="w-full">
-        <Button
-          variant="outline"
-          size="override"
-          onClick={() => setOpen(true)}
-          className="h-8 w-64 pr-1.5 pl-3"
-        >
-          <span className="flex w-full items-center justify-between gap-2">
-            <span className="text-muted-foreground flex items-center gap-2 text-sm font-normal">
-              <SearchIcon className="size-4" /> Search
-            </span>
-            <span className="text-muted-foreground flex items-center gap-1 text-xs">
-              <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono font-medium select-none">
-                {isMac ? "⌘" : "ctrl"}
-              </kbd>
-              <span className="leading-none">+</span>
-              <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono font-medium select-none">
-                K
-              </kbd>
-            </span>
+      <Button
+        variant="outline"
+        size="override"
+        onClick={() => setOpen(true)}
+        className="h-8 w-64 pr-1.5 pl-3"
+      >
+        <span className="flex w-full items-center justify-between gap-2">
+          <span className="text-muted-foreground flex items-center gap-2 text-sm font-normal">
+            <SearchIcon className="size-4" /> Search
           </span>
-        </Button>
-      </div>
+          <span className="text-muted-foreground flex items-center gap-1 text-xs">
+            <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono font-medium select-none">
+              {isMac ? "⌘" : "ctrl"}
+            </kbd>
+            <span className="leading-none">+</span>
+            <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono font-medium select-none">
+              K
+            </kbd>
+          </span>
+        </span>
+      </Button>
+
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>

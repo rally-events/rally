@@ -5,6 +5,7 @@ export const getUserInfoSchema = z
     withOrganization: z.boolean().optional(),
     withOrganizationMembership: z.boolean().optional(),
     withSettings: z.boolean().optional(),
+    withNotifications: z.boolean().optional(),
   })
   .optional()
 
@@ -52,3 +53,23 @@ export const searchEventsSchema = z.object({
 export const deleteEventSchema = z.object({
   id: z.string(),
 })
+
+export const getSponsorRequestsSchema = z
+  .object({
+    eventId: z.string().optional(),
+    organizationId: z.string().optional(),
+  })
+  .refine((data) => data.eventId || data.organizationId, {
+    message: "Either eventId or organizationId is required",
+  })
+
+export const createNotificationSchema = z
+  .object({
+    title: z.string(),
+    body: z.string(),
+    userId: z.string().optional(),
+    organizationId: z.string().optional(),
+  })
+  .refine((data) => data.userId || data.organizationId, {
+    message: "Either userId or organizationId is required",
+  })

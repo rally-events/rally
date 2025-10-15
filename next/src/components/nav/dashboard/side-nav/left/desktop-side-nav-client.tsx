@@ -7,6 +7,7 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   ChartBarIcon,
+  DollarSignIcon,
   HomeIcon,
   MessageCircleIcon,
   PartyPopperIcon,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import React, { ComponentType, JSXElementConstructor, SVGProps, useState } from "react"
+import React, { ComponentType, SVGProps } from "react"
 import { toast } from "sonner"
 
 const sponsorLinks = [
@@ -24,6 +25,11 @@ const sponsorLinks = [
     href: "/dashboard/sponsor/events",
     icon: CalendarIcon,
     label: "Find Events",
+  },
+  {
+    href: "/dashboard/sponsor/sponsorships",
+    icon: DollarSignIcon,
+    label: "Sponsorships",
   },
   {
     href: "/dashboard/documents",
@@ -39,7 +45,7 @@ const hostLinks = [
     label: "Events",
   },
   {
-    href: "/dashboard/sponsorship-requests",
+    href: "/dashboard/host/sponsorships",
     icon: BriefcaseIcon,
     label: "Sponsorship Requests",
   },

@@ -119,14 +119,15 @@ export default async function searchEvents(
 
   const totalCount = totalCountResult[0]?.count || 0
 
-  await Promise.all(
+  const returnedEvents = await Promise.all(
     events.map(async (event) => {
-      const eventPoster = (await db.query.eventsMediaTable.findFirst({
+      const eventMedia = (await db.query.eventsMediaTable.findMany({
         where: eq(eventsMediaTable.eventId, event.id),
         with: {
           media: true,
         },
-      })) as MediaInfo
+      })) as MediaInfo[]
+      const eventPoster = eventMedia.find((m) => m.media.mediaType === "poster")
       if (eventPoster) {
         eventPoster.downloadUrl = await generatePresignedDownloadUrl(
           eventPoster.media.r2FileKey,
@@ -137,5 +138,5 @@ export default async function searchEvents(
     }),
   )
 
-  return { events, totalCount }
+  return { events: returnedEvents, totalCount }
 }

@@ -5,7 +5,7 @@ import { useState, useEffect, ImgHTMLAttributes } from "react"
 import { Blurhash } from "react-blurhash"
 
 interface BlurHashImageProps extends ImgHTMLAttributes<HTMLImageElement> {
-  src: string
+  src?: string
   aspectRatio?: string | null
   blurhash?: string | null
 }
@@ -24,15 +24,37 @@ export default function BlurHashImage({
     setIsLoaded(false)
   }, [src])
 
+  if (!src) {
+    return (
+      <div
+        style={{ aspectRatio: aspectRatio ? aspectRatio.replace(":", "/") : "1/1" }}
+        className={cn(
+          "relative flex items-center justify-center overflow-hidden border-2 border-dashed",
+          props.className,
+        )}
+      >
+        <p className="text-muted-foreground text-sm">No image</p>
+      </div>
+    )
+  }
+
   // If no blurhash, just render a normal image
   if (!blurhash) {
-    return <img src={src} alt={alt} {...props} />
+    return (
+      <img
+        src={src}
+        alt={alt}
+        style={{ aspectRatio: aspectRatio ? aspectRatio.replace(":", "/") : undefined }}
+        {...props}
+      />
+    )
   }
 
   return (
     <div
-      style={{ aspectRatio: aspectRatio ? aspectRatio.replace(":", "/") : undefined }}
-      className={cn("relative", props.className)}
+      style={{ aspectRatio: "1/1" }}
+      // style={{ aspectRatio: aspectRatio ? aspectRatio.replace(":", "/") : undefined }}
+      className={cn("relative overflow-hidden", props.className)}
     >
       <Blurhash
         hash={blurhash}
@@ -52,7 +74,7 @@ export default function BlurHashImage({
         alt={alt}
         onLoad={() => setIsLoaded(true)}
         {...props}
-        className={"absolute inset-0 z-0 h-full w-full object-cover"}
+        className={"absolute inset-0 z-0 h-full w-full object-cover object-center"}
       />
     </div>
   )

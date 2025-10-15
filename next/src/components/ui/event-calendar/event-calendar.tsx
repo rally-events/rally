@@ -448,7 +448,10 @@ export default function EventCalendar() {
           </div>
         ))}
       </div>
-      <div className={`relative grid grid-cols-7 gap-1`} style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}>
+      <div
+        className={`relative grid grid-cols-7 gap-1`}
+        style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
+      >
         {/* Render calendar cells with events as children */}
         {days.map((day, cellIndex) => {
           const isToday = isCurrentMonth && day === currentDay
