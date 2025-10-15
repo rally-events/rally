@@ -3,6 +3,8 @@ import "react-native-url-polyfill/auto"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createClient, processLock } from "@supabase/supabase-js"
 
+const USING_EXPO_GO = true
+
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
@@ -16,8 +18,17 @@ const androidSupabaseUrl = supabaseUrl
   .replace("http://localhost", "http://10.0.2.2")
   .replace("http://127.0.0.1", "http://10.0.2.2")
 
+// run ipconfig on windows
+const iosSupabaseUrl = supabaseUrl
+  .replace("http://localhost", "http://10.0.0.27")
+  .replace("http://127.0.0.1", "http://10.0.0.27")
+
 export const supabase = createClient(
-  Platform.OS === "android" ? androidSupabaseUrl : supabaseUrl,
+  Platform.OS === "android"
+    ? androidSupabaseUrl
+    : USING_EXPO_GO && Platform.OS === "ios"
+      ? iosSupabaseUrl
+      : supabaseUrl,
   supabaseAnonKey,
   {
     auth: {
