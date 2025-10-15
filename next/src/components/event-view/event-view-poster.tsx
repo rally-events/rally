@@ -5,7 +5,7 @@ import BlurHashImage from "../ui/blurhash-image"
 
 export default function EventViewPoster({ poster }: { poster: MediaInfo }) {
   return (
-    <div className="sticky top-20 h-[80vh]">
+    <div className="sticky top-[15vh] h-[60vh]">
       <BlurHashImage
         src={poster.downloadUrl}
         blurhash={poster.media.blurhash}
