@@ -2,7 +2,7 @@
 
 import { and, db, emailOTPTable, eq } from "@rally/db"
 import createAdminClient from "../utils/create-admin-client"
-import getUserInfo from "./getUserInfo"
+import getUserInfo from "../user/getUserInfo"
 import { Context } from "../context"
 import { TRPCError } from "@trpc/server"
 

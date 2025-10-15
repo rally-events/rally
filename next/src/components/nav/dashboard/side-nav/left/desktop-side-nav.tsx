@@ -6,10 +6,13 @@ import { HelpCircleIcon, PlusIcon } from "lucide-react"
 import { api } from "@/lib/trpc/server"
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import NAV_CONFIG from "@/components/nav/nav-config"
 
 export default function DesktopSideNav() {
   return (
-    <div className="bg-surface fixed top-0 left-0 z-10 flex h-screen w-72 flex-col border-r">
+    <div
+      className={`${NAV_CONFIG.left.width} bg-surface fixed top-0 left-0 z-10 flex h-screen flex-col border-r`}
+    >
       <Link
         href="/"
         className="hover:bg-accent mx-2 mt-2 -mb-0.25 flex items-center gap-2 rounded-lg px-4 py-2 transition-colors duration-75"

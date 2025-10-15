@@ -5,6 +5,7 @@ import React, { Suspense } from "react"
 import DesktopRightSideContextMenu, {
   DesktopRightSideContextMenuSkeleton,
 } from "@/components/nav/dashboard/side-nav/right/desktop-right-side-context-menu"
+import NAV_CONFIG from "@/components/nav/nav-config"
 
 export default function layout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,7 +20,9 @@ export default function layout({ children }: { children: React.ReactNode }) {
 
       {/* pt-20 because of the top nav height + 4 bottom margin in tailwind units */}
       {/* pl-76 because of the side nav width + 4 left margin in tailwind units */}
-      <main className="flex-grow pt-20 pr-4 pb-16 pl-76">{children}</main>
+      <main className={`flex-grow pr-4 pb-16 ${NAV_CONFIG.left.padding} ${NAV_CONFIG.top.padding}`}>
+        {children}
+      </main>
       {/* <header className="relative z-10 flex-shrink-0 px-4 pt-20 max-md:hidden">
         <Suspense fallback={<DesktopRightSideContextMenuSkeleton />}>
           <DesktopRightSideContextMenu />

@@ -1,8 +1,8 @@
 import { router, protectedProcedure, publicProcedure } from "../trpc"
-import { signUpSchema, getUserInfoSchema, verifySchema } from "@rally/schemas"
+import { signUpSchema, getUserInfoSchema, updateUserProfileSchema } from "@rally/schemas"
 import registerUser from "../user/registerUser"
 import getUserInfo from "../user/getUserInfo"
-import verifyEmailWithCode from "../user/verifyEmailWithCode"
+import updateUserProfile from "../user/updateUserProfile"
 
 export const userRouter = router({
   getUserInfo: publicProcedure
@@ -11,7 +11,7 @@ export const userRouter = router({
   registerUser: publicProcedure
     .input(signUpSchema)
     .mutation(async ({ ctx, input }) => await registerUser(ctx, input)),
-  verifyEmail: protectedProcedure
-    .input(verifySchema)
-    .mutation(async ({ ctx, input }) => await verifyEmailWithCode(ctx, input.code)),
+  updateUserProfile: protectedProcedure
+    .input(updateUserProfileSchema)
+    .mutation(async ({ ctx, input }) => await updateUserProfile(ctx, input)),
 })

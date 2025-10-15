@@ -38,3 +38,13 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
   }),
   notifications: many(notificationsTable),
 }))
+
+export const phoneChallengeTable = pgTable("phone_challenge", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => usersTable.id, { onDelete: "cascade" })
+    .notNull(),
+  factorId: text("factor_id").notNull(),
+  challengeId: text("challenge_id").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+})

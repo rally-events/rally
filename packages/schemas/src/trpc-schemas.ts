@@ -73,3 +73,16 @@ export const createNotificationSchema = z
   .refine((data) => data.userId || data.organizationId, {
     message: "Either userId or organizationId is required",
   })
+
+export const updateUserProfileSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+})
+
+export const addPhoneAuthSchema = z.object({
+  phoneNumber: z.string().min(1, "Phone number is required"),
+})
+
+export const verifyPhoneAuthSchema = z.object({
+  code: z.string().min(1, "Code is required"),
+})

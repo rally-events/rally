@@ -18,10 +18,16 @@ import { Alert, AlertDescription } from "../ui/alert"
 
 type VerifyForm = z.infer<typeof verifySchema>
 
-export default function VerifyForm({ code }: { code?: string }) {
+export default function VerifyForm({
+  code,
+  inModal = false,
+}: {
+  code?: string
+  inModal?: boolean
+}) {
   const [didVerify, setDidVerify] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { mutate, isPending } = trpc.user.verifyEmail.useMutation({
+  const { mutate, isPending } = trpc.auth.verifyEmail.useMutation({
     onMutate: () => {
       setError(null)
     },
@@ -94,22 +100,30 @@ export default function VerifyForm({ code }: { code?: string }) {
     return (
       <div className="flex flex-col items-center">
         <h1 className="text-4xl leading-tight font-medium">Email verified!</h1>
-        <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
-          Your email has been verified and you can now continue to Rally
-        </p>
-        <Button onClick={() => router.push("/dashboard/overview")}>
-          Go to dashboard <ArrowRightIcon className="h-4 w-4" />
-        </Button>
+        {!inModal && (
+          <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
+            Your email has been verified and you can now continue to Rally
+          </p>
+        )}
+        {!inModal && (
+          <Button onClick={() => router.push("/dashboard/overview")}>
+            Go to dashboard <ArrowRightIcon className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     )
   }
 
   return (
     <>
-      <h1 className="text-4xl leading-tight font-medium">Welcome to Rally!</h1>
-      <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
-        Use the code sent to your email to verify your account and continue to Rally
-      </p>
+      {!inModal && (
+        <>
+          <h1 className="text-4xl leading-tight font-medium">Welcome to Rally!</h1>
+          <p className="text-muted-foreground mb-8 max-w-sm text-center leading-tight">
+            Use the code sent to your email to verify your account and continue to Rally
+          </p>
+        </>
+      )}
 
       <Form {...form}>
         <form
@@ -120,7 +134,7 @@ export default function VerifyForm({ code }: { code?: string }) {
             control={form.control}
             name="code"
             render={({ field }) => (
-              <FormItem className="flex flex-col gap-2">
+              <FormItem className="flex flex-col items-center gap-2">
                 {error && (
                   <Alert className="mb-4" variant="destructive">
                     <AlertTriangleIcon className="size-4" />
@@ -147,39 +161,64 @@ export default function VerifyForm({ code }: { code?: string }) {
                 </FormControl>
                 <FormMessage />
                 <Separator />
-                <Button
-                  disabled={isPending}
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="w-full"
-                  onClick={handlePasteFromClipboard}
-                >
-                  Paste from clipboard <ClipboardIcon />
-                </Button>
+                {inModal ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      disabled={isPending}
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={handlePasteFromClipboard}
+                    >
+                      Paste from clipboard <ClipboardIcon />
+                    </Button>
+                    <Button
+                      disabled={isPending}
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={handleResendCode}
+                    >
+                      Resend code
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    disabled={isPending}
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                    onClick={handlePasteFromClipboard}
+                  >
+                    Paste from clipboard <ClipboardIcon />
+                  </Button>
+                )}
               </FormItem>
             )}
           />
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              disabled={isPending}
-              type="button"
-              variant="ghost"
-              size="lg"
-              className="w-full"
-              onClick={handleResendCode}
-            >
-              Resend code
-            </Button>
-            <Link
-              className={buttonVariants({ variant: "ghost", size: "lg" })}
-              href="/dashboard/overview"
-            >
-              Verify later
-              <ArrowRightIcon className="h-4 w-4" />
-            </Link>
-          </div>
+          {!inModal && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                disabled={isPending}
+                type="button"
+                variant="ghost"
+                size="lg"
+                className="w-full"
+                onClick={handleResendCode}
+              >
+                Resend code
+              </Button>
+              <Link
+                className={buttonVariants({ variant: "ghost", size: "lg" })}
+                href="/dashboard/overview"
+              >
+                Verify later
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
         </form>
       </Form>
     </>
