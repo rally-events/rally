@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { defaultFilters } from "./host-events-list"
+import { defaultFilters } from "./host-events-provider"
 
 interface HostEventListFiltersProps {
   filters: z.infer<typeof searchEventsSchema>

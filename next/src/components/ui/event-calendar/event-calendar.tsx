@@ -1,18 +1,13 @@
 "use client"
-import { UserInfo } from "@rally/api"
 import React, { useState, useMemo } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../button"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../hover-card"
 import { useRouter } from "next/navigation"
 import { OverflowIndicator } from "./overflow-indicator"
-import { api } from "@/lib/trpc/client"
+import { useHostEvents } from "@/components/host-events/host-events-provider"
 
 // TODO: clean this mf mess up
-
-interface EventCalendarProps {
-  user: UserInfo
-}
 
 interface EventBarSegment {
   eventId: string
@@ -166,8 +161,16 @@ function MultiRunEvent({ runs, href }: { runs: EventRun[]; href: string }) {
   )
 }
 
-export default function EventCalendar({ user }: EventCalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date())
+export default function EventCalendar() {
+  const {
+    currentDate,
+    calendarEvents,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToToday,
+    canGoBack,
+    canGoForward,
+  } = useHostEvents()
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -177,14 +180,7 @@ export default function EventCalendar({ user }: EventCalendarProps) {
   const daysInMonth = lastDayOfMonth.getDate()
   const startingDayOfWeek = firstDayOfMonth.getDay()
 
-  // Fetch events for the current month
-  const { data: eventsData, isLoading } = api.event.searchEvents.useQuery({
-    organizationId: user.organizationId!,
-    startDateRange: firstDayOfMonth,
-    endDateRange: lastDayOfMonth,
-  })
-
-  const events = eventsData ?? { events: [], totalCount: 0 }
+  const events = { events: calendarEvents, totalCount: calendarEvents.length }
 
   const today = new Date()
   const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year
@@ -205,29 +201,6 @@ export default function EventCalendar({ user }: EventCalendarProps) {
     month: "long",
     year: "numeric",
   })
-
-  const currentYear = new Date().getFullYear()
-  const minDate = new Date(currentYear - 5, 0, 1)
-  const maxDate = new Date(currentYear + 5, 11, 31)
-
-  const canGoBack = new Date(year, month - 1, 1) >= minDate
-  const canGoForward = new Date(year, month + 1, 1) <= maxDate
-
-  const goToPreviousMonth = () => {
-    if (canGoBack) {
-      setCurrentDate(new Date(year, month - 1, 1))
-    }
-  }
-
-  const goToNextMonth = () => {
-    if (canGoForward) {
-      setCurrentDate(new Date(year, month + 1, 1))
-    }
-  }
-
-  const goToToday = () => {
-    setCurrentDate(new Date())
-  }
 
   // Process events into bar segments, group by event, and create runs
   const { eventSegments, groupedEvents, eventRuns } = useMemo(() => {

@@ -1,5 +1,7 @@
 import HostEventsList from "@/components/host-events/host-events-list"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import HostEventsOverviewCards from "@/components/host-events/host-events-overview-cards"
+import HostEventsProvider from "@/components/host-events/host-events-provider"
+import { Card, CardContent } from "@/components/ui/card"
 import EventCalendar from "@/components/ui/event-calendar/event-calendar"
 import { api } from "@/lib/trpc/server"
 import { notFound } from "next/navigation"
@@ -11,32 +13,25 @@ export default async function page() {
   if (!user || !user.organizationId) {
     notFound()
   }
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-4">
+    <HostEventsProvider user={user}>
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          <HostEventsOverviewCards />
+
+          <section>
+            <Card>
+              <CardContent>
+                <EventCalendar />
+              </CardContent>
+            </Card>
+          </section>
+        </div>
         <section>
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <h2 className="text-2xl font-bold">Events</h2>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>We will be showing stats and quick actions and stuff here.</p>
-            </CardContent>
-          </Card>
-        </section>
-        <section>
-          <Card>
-            <CardContent>
-              <EventCalendar user={user} />
-            </CardContent>
-          </Card>
+          <HostEventsList />
         </section>
       </div>
-      <section>
-        <HostEventsList user={user} />
-      </section>
-    </div>
+    </HostEventsProvider>
   )
 }

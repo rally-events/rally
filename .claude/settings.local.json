@@ -20,7 +20,8 @@
       "Bash(pnpm --filter @rally/api build)",
       "Bash(pnpm list:*)",
       "Bash(npx tsc:*)",
-      "Bash(pnpm --filter next build)"
+      "Bash(pnpm --filter next build)",
+      "Bash(pnpm --filter next type-check)"
     ],
     "deny": [],
     "ask": []

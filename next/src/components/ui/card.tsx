@@ -13,7 +13,9 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm data-[size=sm]:gap-4 data-[size=sm]:py-4",
+        "bg-card text-card-foreground flex flex-col rounded-xl border shadow-sm",
+        size === "sm" && "gap-4 py-4",
+        size === "default" && "gap-6 py-6",
         className,
       )}
       {...props}

@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Settings2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react"
 import HostDataTableDropdown from "./host-data-table-dropdown"
-import { EVENT_HOST_TABLE_LIMIT } from "../host-events-list"
+import { EVENT_HOST_TABLE_LIMIT } from "../host-events-provider"
 import { Skeleton } from "@/components/ui/skeleton"
 
 type RouterOutputs = inferRouterOutputs<AppRouter>
