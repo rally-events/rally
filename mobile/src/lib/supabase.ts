@@ -12,15 +12,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    ...(Platform.OS !== "web" ? { storage: AsyncStorage } : {}),
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-    lock: processLock,
+const androidSupabaseUrl = supabaseUrl
+  .replace("http://localhost", "http://10.0.2.2")
+  .replace("http://127.0.0.1", "http://10.0.2.2")
+
+export const supabase = createClient(
+  Platform.OS === "android" ? androidSupabaseUrl : supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      ...(Platform.OS !== "web" ? { storage: AsyncStorage } : {}),
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+      lock: processLock,
+    },
   },
-})
+)
 
 // Tells Supabase Auth to continuously refresh the session automatically
 // if the app is in the foreground. When this is added, you will continue
