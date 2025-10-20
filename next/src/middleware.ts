@@ -99,7 +99,6 @@ export async function middleware(request: NextRequest) {
 
   if (
     user &&
-    // @ts-ignore
     user.user_metadata.is_email_verified &&
     request.nextUrl.pathname.startsWith("/verify")
   ) {

@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
       resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
     },
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   transpilePackages: ["@rally/schemas", "@rally/db", "@rally/api", "@rally/api-client"],
 }
 

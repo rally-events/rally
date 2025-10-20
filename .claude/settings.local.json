@@ -22,7 +22,8 @@
       "Bash(npx tsc:*)",
       "Bash(pnpm --filter next build)",
       "Bash(pnpm --filter next type-check)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(pnpm lint:*)"
     ],
     "deny": [],
     "ask": []
