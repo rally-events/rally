@@ -6,6 +6,7 @@ export const getUserInfoSchema = z
     withOrganizationMembership: z.boolean().optional(),
     withSettings: z.boolean().optional(),
     withNotifications: z.boolean().optional(),
+    withChallenges: z.boolean().optional(),
   })
   .optional()
 

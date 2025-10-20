@@ -1,20 +1,15 @@
 "use client"
 
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import NAV_CONFIG from "../nav/nav-config"
 import Link from "next/link"
 import { ComponentType, SVGProps } from "react"
-import { CreditCardIcon, LockIcon, UserIcon } from "lucide-react"
+import { CreditCardIcon, UserIcon } from "lucide-react"
 
 export default function SettingsNav() {
-  const router = useRouter()
   const pathname = usePathname()
 
   const settingsSegment = pathname.split("/").slice(3)[0]
-  if (!settingsSegment) {
-    router.push("/dashboard/settings/account")
-    return null
-  }
 
   return (
     <div className="fixed top-0 left-0 flex h-full flex-col">

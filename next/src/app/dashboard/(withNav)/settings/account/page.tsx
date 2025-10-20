@@ -4,7 +4,7 @@ import React from "react"
 
 export default async function page() {
   const caller = await api()
-  const user = await caller.user.getUserInfo()
+  const user = await caller.user.getUserInfo({ withChallenges: true })
   if (!user) {
     return null
   }

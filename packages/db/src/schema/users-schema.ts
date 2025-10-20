@@ -37,6 +37,10 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
     references: [organizationMembersTable.userId],
   }),
   notifications: many(notificationsTable),
+  phoneChallenge: one(phoneChallengeTable, {
+    fields: [usersTable.id],
+    references: [phoneChallengeTable.userId],
+  }),
 }))
 
 export const phoneChallengeTable = pgTable("phone_challenge", {
@@ -48,3 +52,10 @@ export const phoneChallengeTable = pgTable("phone_challenge", {
   challengeId: text("challenge_id").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
 })
+
+export const phoneChallengeRelations = relations(phoneChallengeTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [phoneChallengeTable.userId],
+    references: [usersTable.id],
+  }),
+}))

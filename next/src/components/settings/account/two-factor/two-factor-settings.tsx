@@ -2,16 +2,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { UserInfo } from "@rally/api"
 import { MailIcon, PhoneIcon, VaultIcon } from "lucide-react"
-import React from "react"
+import React, { Dispatch, SetStateAction } from "react"
 import VerifyEmailModal from "./verify-email-modal"
-import AddPhoneModal from "./add-phone-modal"
-import RemovePhoneModal from "./remove-phone-modal"
+import { Badge } from "@/components/ui/badge"
+import PhoneControls from "./phone-controls"
 
 interface TwoFactorSettingsProps {
-  user: UserInfo
+  userInfo: UserInfo<{ withChallenges: true }>
+  setUserInfo: Dispatch<SetStateAction<UserInfo<{ withChallenges: true }>>>
 }
-
-export default function TwoFactorSettings({ user }: TwoFactorSettingsProps) {
+export default function TwoFactorSettings({ userInfo, setUserInfo }: TwoFactorSettingsProps) {
   return (
     <Card>
       <CardHeader>
@@ -23,75 +23,89 @@ export default function TwoFactorSettings({ user }: TwoFactorSettingsProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div
-                className={`rounded-md border p-2 ${user.supabaseMetadata.is_phone_verified ? "border-success" : user.supabaseMetadata.phone_number ? "border-warning" : ""}`}
+                className={`rounded-md border p-2 ${userInfo.supabaseMetadata.is_phone_verified ? "border-success" : userInfo.supabaseMetadata.phone_number ? "border-warning" : ""}`}
               >
                 <MailIcon className="size-5" />
               </div>
               <div className="flex flex-col">
-                <p className="leading-tight font-medium">Email</p>
+                <p className="inline-flex items-center gap-1 leading-tight font-medium">
+                  Email
+                  {userInfo.supabaseMetadata.email && (
+                    <>
+                      {!userInfo.supabaseMetadata.is_email_verified && (
+                        <Badge size="sm" variant="destructive">
+                          Not verified
+                        </Badge>
+                      )}
+                      {userInfo.supabaseMetadata.is_email_verified && (
+                        <Badge size="sm" variant="success">
+                          Verified
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </p>
                 <span>
                   <p className="text-muted-foreground text-sm leading-tight">
-                    {user.supabaseMetadata.email ? (
-                      <>
-                        {user.supabaseMetadata.email}
-                        {!user.supabaseMetadata.is_email_verified && " (Not verified)"}
-                      </>
-                    ) : (
-                      "Not verified"
-                    )}
+                    {userInfo.supabaseMetadata.email}
                   </p>
                 </span>
               </div>
             </div>
-            {user.supabaseMetadata.is_email_verified ? (
-              <>{/* TODO: change email flow */}</>
+            {userInfo.supabaseMetadata.is_email_verified ? (
+              <>{/* TODO: Add support for changing emails */}</>
             ) : (
-              <VerifyEmailModal user={user} />
+              <VerifyEmailModal user={userInfo} />
             )}
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div
-                className={`rounded-md border p-2 ${user.supabaseMetadata.is_phone_verified ? "border-success" : user.supabaseMetadata.phone_number ? "border-warning" : ""}`}
+                className={`rounded-md border p-2 ${userInfo.supabaseMetadata.is_phone_verified ? "border-success" : userInfo.supabaseMetadata.phone_number ? "border-warning" : ""}`}
               >
                 <PhoneIcon className="size-5" />
               </div>
               <div className="flex flex-col">
-                <p className="leading-tight font-medium">Phone Number</p>
+                <p className="inline-flex items-center gap-1 leading-tight font-medium">
+                  Phone Number
+                  {userInfo.supabaseMetadata.phone_number && (
+                    <>
+                      {!userInfo.supabaseMetadata.is_phone_verified && (
+                        <Badge size="sm" variant="destructive">
+                          Not verified
+                        </Badge>
+                      )}
+                      {userInfo.supabaseMetadata.is_phone_verified && (
+                        <Badge size="sm" variant="success">
+                          Verified
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </p>
                 <span>
                   <p className="text-muted-foreground text-sm leading-tight">
-                    {user.supabaseMetadata.phone_number ? (
-                      <>
-                        {user.supabaseMetadata.phone_number}
-                        {!user.supabaseMetadata.is_phone_verified && " (Not verified)"}
-                      </>
-                    ) : (
-                      "Not setup"
-                    )}
+                    {userInfo.supabaseMetadata.phone_number ?? "Not setup"}
                   </p>
                 </span>
               </div>
             </div>
-            {user.supabaseMetadata.is_phone_verified ? (
-              <RemovePhoneModal user={user} />
-            ) : (
-              <AddPhoneModal user={user} />
-            )}
+            <PhoneControls userInfo={userInfo} setUserInfo={setUserInfo} />
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div
-                className={`rounded-md border p-2 ${user.supabaseMetadata.is_phone_verified ? "border-success" : user.supabaseMetadata.phone_number ? "border-warning" : ""}`}
+                className={`rounded-md border p-2 ${userInfo.supabaseMetadata.is_phone_verified ? "border-success" : userInfo.supabaseMetadata.phone_number ? "border-warning" : ""}`}
               >
                 <VaultIcon className="size-5" />
               </div>
               <div className="flex flex-col">
-                <p className="leading-tight font-medium">Authenticator App</p>
-                <span>
-                  <p className="text-muted-foreground text-sm leading-tight">Not setup</p>
-                </span>
+                <p className="inline-flex items-center gap-1 leading-tight font-medium">
+                  Authenticator App
+                </p>
               </div>
             </div>
+            {/* TODO: Add authenticator app flow */}
             <Button variant="outline">Add Authenticator App</Button>
           </div>
         </div>

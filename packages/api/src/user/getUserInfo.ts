@@ -30,6 +30,7 @@ export default async function getUserInfo(
     with: {
       organization: input.withOrganization ? true : undefined,
       organizationMembership: input.withOrganizationMembership ? true : undefined,
+      phoneChallenge: input.withChallenges ? true : undefined,
     },
   })
 

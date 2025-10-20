@@ -8,6 +8,7 @@ import {
   InferSelectModel,
   eventsMediaTable,
   notificationsTable,
+  phoneChallengeTable,
 } from "@rally/db"
 import { SupabaseUserMetadata } from "../user/getUserInfo"
 import searchEvents from "../events/searchEvents"
@@ -28,7 +29,7 @@ export type MediaInfo = InferSelectModel<typeof eventsMediaTable> & {
 export type BaseEventInfo = Omit<RawEventInfo, "organization" | "media" | "updatedByUser">
 export type BaseUserInfo = Omit<
   RawUserInfo,
-  "organization" | "organizationMembership" | "supabaseMetadata"
+  "organization" | "organizationMembership" | "supabaseMetadata" | "phoneChallenge"
 >
 
 export type NotificationInfo = InferSelectModel<typeof notificationsTable>
@@ -38,6 +39,7 @@ export interface EventInfoParams {
   withOrganization?: boolean
   withMedia?: boolean
   withUpdatedByUser?: boolean
+  withChallenges?: boolean
 }
 
 // User type parameters interface
@@ -62,6 +64,9 @@ export type UserInfo<T extends UserInfoParams = {}> = BaseUserInfo &
   (T extends { withOrganizationMembership: true }
     ? { organizationMembership: InferSelectModel<typeof organizationMembersTable> | null }
     : {}) &
-  (T extends { withNotifications: true } ? { notifications: NotificationInfo[] } : {}) & {
+  (T extends { withNotifications: true } ? { notifications: NotificationInfo[] } : {}) &
+  (T extends { withChallenges: true }
+    ? { phoneChallenge: InferSelectModel<typeof phoneChallengeTable> | null }
+    : {}) & {
     supabaseMetadata: SupabaseUserMetadata
   }

@@ -26,10 +26,16 @@
   --color-input: var(--input);
   --color-border: var(--border);
 
+  --color-success: var(--success);
+  --color-success-background: var(--success-background);
+  --color-success-border: var(--success-border);
+  --color-success-hover: var(--success-hover);
+
   --color-destructive: var(--destructive);
   --color-destructive-background: var(--destructive-background);
   --color-destructive-border: var(--destructive-border);
   --color-destructive-hover: var(--destructive-hover);
+
   --color-warning: var(--warning);
   --color-warning-background: var(--warning-background);
   --color-warning-border: var(--warning-border);
@@ -81,6 +87,11 @@
   --warning-border: oklch(0.9 0.12 84); /* mid-light amber */
   --warning-background: oklch(0.97 0.04 84); /* very light amber tint */
   --warning-hover: oklch(0.92 0.08 84); /* stronger light amber */
+
+  --success: oklch(0.37 0.22 142); /* text on light bg (deep green) */
+  --success-border: oklch(0.78 0.12 142); /* mid-light green */
+  --success-background: oklch(0.96 0.03 142); /* very light green tint */
+  --success-hover: oklch(0.91 0.06 142); /* stronger light green */
 
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
