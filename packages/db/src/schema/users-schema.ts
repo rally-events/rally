@@ -41,6 +41,10 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
     fields: [usersTable.id],
     references: [phoneChallengeTable.userId],
   }),
+  authenticatorChallenge: one(authenticatorChallengeTable, {
+    fields: [usersTable.id],
+    references: [authenticatorChallengeTable.userId],
+  }),
 }))
 
 export const phoneChallengeTable = pgTable("phone_challenge", {
@@ -56,6 +60,25 @@ export const phoneChallengeTable = pgTable("phone_challenge", {
 export const phoneChallengeRelations = relations(phoneChallengeTable, ({ one }) => ({
   user: one(usersTable, {
     fields: [phoneChallengeTable.userId],
+    references: [usersTable.id],
+  }),
+}))
+
+export const authenticatorChallengeTable = pgTable("authenticator_challenge", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => usersTable.id, { onDelete: "cascade" })
+    .notNull(),
+  factorId: text("factor_id").notNull(),
+  qrCode: text("qr_code").notNull(),
+  secret: text("secret").notNull(),
+  uri: text("uri").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+})
+
+export const authenticatorChallengeRelations = relations(authenticatorChallengeTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [authenticatorChallengeTable.userId],
     references: [usersTable.id],
   }),
 }))

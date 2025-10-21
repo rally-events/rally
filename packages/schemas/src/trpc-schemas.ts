@@ -87,3 +87,11 @@ export const addPhoneAuthSchema = z.object({
 export const verifyPhoneAuthSchema = z.object({
   code: z.string().min(1, "Code is required"),
 })
+
+export const addAuthenticatorAuthSchema = z.object({
+  friendlyName: z.string().min(1, "Friendly name is required").default("Authenticator App"),
+})
+
+export const verifyAuthenticatorAuthSchema = z.object({
+  code: z.string().min(6, "Code must be 6 digits").max(6, "Code must be 6 digits"),
+})

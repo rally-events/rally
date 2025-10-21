@@ -14,6 +14,7 @@ export type SupabaseUserMetadata = {
   organization_type: "host" | "sponsor" | undefined
   is_phone_verified: boolean
   is_email_verified: boolean
+  is_authenticator_verified: boolean
 }
 
 export default async function getUserInfo(
@@ -31,6 +32,7 @@ export default async function getUserInfo(
       organization: input.withOrganization ? true : undefined,
       organizationMembership: input.withOrganizationMembership ? true : undefined,
       phoneChallenge: input.withChallenges ? true : undefined,
+      authenticatorChallenge: input.withChallenges ? true : undefined,
     },
   })
 

@@ -6,6 +6,7 @@ import React, { Dispatch, SetStateAction } from "react"
 import VerifyEmailModal from "./verify-email-modal"
 import { Badge } from "@/components/ui/badge"
 import PhoneControls from "./phone-controls"
+import AuthenticatorControls from "./authenticator-controls"
 
 interface TwoFactorSettingsProps {
   userInfo: UserInfo<{ withChallenges: true }>
@@ -95,18 +96,27 @@ export default function TwoFactorSettings({ userInfo, setUserInfo }: TwoFactorSe
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div
-                className={`rounded-md border p-2 ${userInfo.supabaseMetadata.is_phone_verified ? "border-success" : userInfo.supabaseMetadata.phone_number ? "border-warning" : ""}`}
+                className={`rounded-md border p-2 ${userInfo.supabaseMetadata.is_authenticator_verified ? "border-success" : ""}`}
               >
                 <VaultIcon className="size-5" />
               </div>
               <div className="flex flex-col">
                 <p className="inline-flex items-center gap-1 leading-tight font-medium">
                   Authenticator App
+                  {userInfo.supabaseMetadata.is_authenticator_verified && (
+                    <Badge size="sm" variant="success">
+                      Verified
+                    </Badge>
+                  )}
                 </p>
+                <span>
+                  <p className="text-muted-foreground text-sm leading-tight">
+                    {userInfo.supabaseMetadata.is_authenticator_verified ? "Enabled" : "Not setup"}
+                  </p>
+                </span>
               </div>
             </div>
-            {/* TODO: Add authenticator app flow */}
-            <Button variant="outline">Add Authenticator App</Button>
+            <AuthenticatorControls userInfo={userInfo} setUserInfo={setUserInfo} />
           </div>
         </div>
       </CardContent>

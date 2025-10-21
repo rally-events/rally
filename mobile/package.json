@@ -10,12 +10,12 @@
     "dev": "expo start",
     "build": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
-    "format": "prettier --write .",
-    "type-check": "tsc --noEmit"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@rally/api": "workspace:*",
+    "@rally/api-client": "workspace:*",
     "@rally/db": "workspace:*",
     "@rally/schemas": "workspace:*",
     "@supabase/supabase-js": "^2.75.0",

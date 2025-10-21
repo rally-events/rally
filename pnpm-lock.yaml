@@ -26,6 +26,9 @@ importers:
       '@rally/api':
         specifier: workspace:*
         version: link:../packages/api
+      '@rally/api-client':
+        specifier: workspace:*
+        version: link:../packages/api-client
       '@rally/db':
         specifier: workspace:*
         version: link:../packages/db
